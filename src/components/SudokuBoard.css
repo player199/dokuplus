@@ -1,0 +1,11 @@
+.sudoku-board {
+  display: inline-flex;
+  flex-direction: column;
+  border: 3px solid #333;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.board-row {
+  display: flex;
+} 
