@@ -1,10 +1,46 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import SudokuBoard from './SudokuBoard';
 import NumberPad from './NumberPad';
 import { useSudokuGame } from '../hooks/useSudokuGame';
+import { loadPuzzlesFromFile } from '../utils/sudokuFileParser';
+import { setPuzzles } from '../utils/sudokuUtils';
 import './Game.css';
 
 const Game: React.FC = () => {
+  const [puzzlesLoaded, setPuzzlesLoaded] = useState<boolean>(false);
+  const [puzzleCount, setPuzzleCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const boardRef = useRef<HTMLDivElement>(null);
+  
+  // Load puzzles from file on component mount
+  useEffect(() => {
+    const loadPuzzles = async () => {
+      try {
+        setIsLoading(true);
+        const puzzles = await loadPuzzlesFromFile();
+        
+        // If we have puzzles, set them in the sudokuUtils
+        if (puzzles.length > 0) {
+          setPuzzles(puzzles);
+          setPuzzleCount(puzzles.length);
+          console.log(`Set ${puzzles.length} puzzles for use in the game`);
+        } else {
+          console.warn('No puzzles were loaded, will use default puzzle');
+        }
+        
+        setPuzzlesLoaded(true);
+      } catch (error) {
+        console.error('Failed to load puzzles:', error);
+        setPuzzlesLoaded(true); // Still mark as loaded so game can use default puzzle
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadPuzzles();
+  }, []);
+
+  // Initialize the game state after puzzles are loaded
   const {
     board,
     selectedCell,
@@ -25,7 +61,32 @@ const Game: React.FC = () => {
     getNotesForCell,
     getCandidatesForCell,
     hasConflict,
-  } = useSudokuGame();
+  } = useSudokuGame(puzzlesLoaded);
+
+  // Handle click outside the board to deselect cell
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Don't deselect when clicking on buttons or other interactive elements
+      if (target.tagName === 'BUTTON' || 
+          target.closest('button') || 
+          target.closest('.number-pad') ||
+          target.closest('.game-controls')) {
+        return;
+      }
+      
+      // Only deselect if clicking outside the board
+      if (selectedCell && boardRef.current && !boardRef.current.contains(target)) {
+        selectCell(-1, -1); // Use an invalid position to represent no selection
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [selectedCell, selectCell]);
 
   // Handle keyboard input
   const handleKeyDown = useCallback(
@@ -87,23 +148,35 @@ const Game: React.FC = () => {
     };
   }, [handleKeyDown]);
 
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="game-container">
+        <h1>Cosmic Sudoku</h1>
+        <div className="loading-message">Loading puzzles...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="game-container">
       <h1>Cosmic Sudoku</h1>
       
       <div className="game-board">
-        <SudokuBoard
-          board={board}
-          selectedCell={selectedCell}
-          isFixedCell={isFixedCell}
-          hasConflict={hasConflict}
-          onCellClick={selectCell}
-          onCandidateClick={toggleCellCandidate}
-          getNotesForCell={getNotesForCell}
-          getCandidatesForCell={getCandidatesForCell}
-          candidateMode={candidateMode}
-          isAutoFilling={isAutoFilling}
-        />
+        <div ref={boardRef}>
+          <SudokuBoard
+            board={board}
+            selectedCell={selectedCell}
+            isFixedCell={isFixedCell}
+            hasConflict={hasConflict}
+            onCellClick={selectCell}
+            onCandidateClick={toggleCellCandidate}
+            getNotesForCell={getNotesForCell}
+            getCandidatesForCell={getCandidatesForCell}
+            candidateMode={candidateMode}
+            isAutoFilling={isAutoFilling}
+          />
+        </div>
         
         <div className="game-controls">
           <NumberPad

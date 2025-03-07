@@ -114,4 +114,36 @@ h1 {
   .game-controls {
     margin-top: 20px;
   }
+}
+
+.puzzle-info {
+  margin-bottom: 15px;
+  background-color: rgba(76, 201, 240, 0.1);
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  padding: 8px 15px;
+  border-radius: 6px;
+  color: #4cc9f0;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Orbitron', sans-serif;
+  display: inline-block;
+}
+
+.loading-message {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: rgba(76, 201, 240, 0.1);
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  border-radius: 8px;
+  color: #4cc9f0;
+  font-size: 16px;
+  font-weight: 500;
+  animation: pulse 1.5s infinite;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
 } 

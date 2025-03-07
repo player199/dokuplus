@@ -1,3 +1,5 @@
+import { SudokuPuzzle } from './sudokuFileParser';
+
 // Sudoku board type definition
 export type SudokuBoard = (number | null)[][];
 
@@ -49,10 +51,10 @@ export const createEmptyBoard = (): SudokuBoard => {
   return Array(9).fill(null).map(() => Array(9).fill(null));
 };
 
-// Sample puzzle for testing - can be replaced with a more sophisticated generator
-export const generateSudokuPuzzle = (): { puzzle: SudokuBoard, solution: SudokuBoard } => {
-  // This is a sample puzzle - in a real app, you'd use a better generator
-  const puzzle: SudokuBoard = [
+// Default puzzle to use if no puzzles are loaded
+const defaultPuzzle: SudokuPuzzle = {
+  id: "DefaultGrid",
+  puzzle: [
     [5, 3, null, null, 7, null, null, null, null],
     [6, null, null, 1, 9, 5, null, null, null],
     [null, 9, 8, null, null, null, null, 6, null],
@@ -62,20 +64,101 @@ export const generateSudokuPuzzle = (): { puzzle: SudokuBoard, solution: SudokuB
     [null, 6, null, null, null, null, 2, 8, null],
     [null, null, null, 4, 1, 9, null, null, 5],
     [null, null, null, null, 8, null, null, 7, 9]
-  ];
-  
-  // A complete solution for the sample puzzle
-  const solution: SudokuBoard = [
-    [5, 3, 4, 6, 7, 8, 9, 1, 2],
-    [6, 7, 2, 1, 9, 5, 3, 4, 8],
-    [1, 9, 8, 3, 4, 2, 5, 6, 7],
-    [8, 5, 9, 7, 6, 1, 4, 2, 3],
-    [4, 2, 6, 8, 5, 3, 7, 9, 1],
-    [7, 1, 3, 9, 2, 4, 8, 5, 6],
-    [9, 6, 1, 5, 3, 7, 2, 8, 4],
-    [2, 8, 7, 4, 1, 9, 6, 3, 5],
-    [3, 4, 5, 2, 8, 6, 1, 7, 9]
-  ];
+  ]
+};
 
-  return { puzzle, solution };
+// Loaded puzzles will be stored here after initialization
+let loadedPuzzles: SudokuPuzzle[] = [];
+
+// Set loaded puzzles
+export const setPuzzles = (puzzles: SudokuPuzzle[]): void => {
+  loadedPuzzles = puzzles;
+};
+
+// Solve a Sudoku puzzle
+export const solveSudoku = (board: SudokuBoard): SudokuBoard | null => {
+  const solution = JSON.parse(JSON.stringify(board)) as SudokuBoard;
+  
+  if (solveBoard(solution)) {
+    return solution;
+  }
+  return null;
+};
+
+// Helper function for solving Sudoku (backtracking algorithm)
+const solveBoard = (board: SudokuBoard): boolean => {
+  // Find an empty cell
+  let emptyCell = findEmptyCell(board);
+  if (!emptyCell) {
+    // No empty cells means the puzzle is solved
+    return true;
+  }
+  
+  const [row, col] = emptyCell;
+  
+  // Try each number 1-9
+  for (let num = 1; num <= 9; num++) {
+    if (isValidPlacement(board, row, col, num)) {
+      // If valid, place the number
+      board[row][col] = num;
+      
+      // Recursively try to solve the rest of the puzzle
+      if (solveBoard(board)) {
+        return true;
+      }
+      
+      // If we get here, the current placement didn't work, so backtrack
+      board[row][col] = null;
+    }
+  }
+  
+  // If we tried all numbers and none worked, this puzzle is unsolvable
+  return false;
+};
+
+// Find an empty cell in the board
+const findEmptyCell = (board: SudokuBoard): [number, number] | null => {
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      if (board[row][col] === null) {
+        return [row, col];
+      }
+    }
+  }
+  return null;
+};
+
+// Function to generate a Sudoku puzzle by randomly selecting from available puzzles
+export const generateSudokuPuzzle = (): { puzzle: SudokuBoard, solution: SudokuBoard } => {
+  // If we have loaded puzzles, use one of them
+  if (loadedPuzzles.length > 0) {
+    // Randomly select one of the loaded puzzles
+    const randomIndex = Math.floor(Math.random() * loadedPuzzles.length);
+    const selectedPuzzle = loadedPuzzles[randomIndex];
+    
+    // Create deep copies to prevent mutations
+    const puzzleCopy = JSON.parse(JSON.stringify(selectedPuzzle.puzzle));
+    
+    // Since we don't have a solution in the file, solve it programmatically
+    const solutionCopy = solveSudoku(puzzleCopy);
+    
+    if (solutionCopy) {
+      return {
+        puzzle: puzzleCopy,
+        solution: solutionCopy
+      };
+    }
+    
+    console.warn(`Selected puzzle ${selectedPuzzle.id} could not be solved, using default`);
+  }
+  
+  // If no puzzles loaded or the puzzle couldn't be solved, use the default puzzle
+  // For the default puzzle, compute its solution
+  const puzzleCopy = JSON.parse(JSON.stringify(defaultPuzzle.puzzle));
+  const solutionCopy = solveSudoku(puzzleCopy) || createEmptyBoard();
+  
+  return {
+    puzzle: puzzleCopy,
+    solution: solutionCopy
+  };
 }; 

@@ -230,6 +230,25 @@
   background: rgba(26, 27, 70, 0.7);
   border: 1px solid rgba(247, 37, 133, 0.3);
   color: #f72585;
+  position: relative;
+}
+
+.fly-button .airplane-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  fill: currentColor;
+  transition: all 0.3s;
+}
+
+.fly-button.active .airplane-icon {
+  animation: fly-pulse 2s infinite;
+}
+
+@keyframes fly-pulse {
+  0% { transform: scale(1) rotate(0); opacity: 1; }
+  50% { transform: scale(1.2) rotate(5deg); opacity: 0.8; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
 .fly-button:hover:not(:disabled) {
