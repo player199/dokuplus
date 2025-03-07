@@ -9,8 +9,57 @@
   z-index: 1;
 }
 
-h1 {
+.game-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.records-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(26, 27, 70, 0.7);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+}
+
+.records-button svg {
+  width: 18px;
+  height: 18px;
+  stroke: #4cc9f0;
+  transition: transform 0.3s;
+}
+
+.records-button:hover {
+  background: rgba(58, 12, 163, 0.7);
+  border-color: #4cc9f0;
+  box-shadow: 0 0 15px rgba(76, 201, 240, 0.4);
+  transform: translateY(-2px);
+}
+
+.records-button:hover svg {
+  transform: translateY(-2px);
+}
+
+h1 {
+  margin: 0;
   color: #f72585;
   text-shadow: 0 0 10px #7209b7, 0 0 20px #3a0ca3;
   font-family: 'Orbitron', sans-serif;
@@ -129,6 +178,16 @@ h1::after {
   
   .game-controls {
     margin-top: 20px;
+  }
+  
+  .game-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .header-controls {
+    width: 100%;
+    justify-content: center;
   }
 }
 

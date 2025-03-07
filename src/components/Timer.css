@@ -1,0 +1,32 @@
+.timer {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(26, 27, 70, 0.7);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+  transition: all 0.3s;
+}
+
+.timer-icon {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.timer-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #4cc9f0;
+}
+
+.timer-text {
+  font-weight: 500;
+  color: #4cc9f0;
+} 
