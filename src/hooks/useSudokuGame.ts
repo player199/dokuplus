@@ -20,6 +20,7 @@ interface SudokuGameState {
   autoCandidates: Map<string, number[]>; // Store automatically calculated candidates
   userCandidates: Map<string, number[]>; // Store user-modified candidates
   inputMode: 'normal' | 'candidate'; // Input mode for numpad
+  autoFillSpeed: number; // Track the current auto-fill speed
 }
 
 export const useSudokuGame = (isInitialized: boolean = true) => {
@@ -49,6 +50,7 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       autoCandidates: new Map<string, number[]>(),
       userCandidates: new Map<string, number[]>(),
       inputMode: 'normal' as const,
+      autoFillSpeed: 500 // Initial speed of 500ms
     };
   });
   
@@ -72,6 +74,7 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
         autoCandidates: new Map<string, number[]>(),
         userCandidates: new Map<string, number[]>(),
         inputMode: 'normal',
+        autoFillSpeed: 500 // Reset speed to initial value when starting or restarting auto-filling
       });
     }
   }, [isInitialized]);
@@ -222,67 +225,80 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     value: number
   ) => {
     return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        setGameState(prev => {
-          const newBoard = JSON.parse(JSON.stringify(prev.board));
-          
-          // Fill the cell with the value
-          newBoard[row][col] = value;
-          
-          // Clear user candidates for this cell
-          const newUserCandidates = new Map(prev.userCandidates);
-          newUserCandidates.delete(`${row},${col}`);
-          
-          // Compute the 3x3 box coordinates
-          const boxRow = Math.floor(row / 3) * 3;
-          const boxCol = Math.floor(col / 3) * 3;
-          
-          // Recalculate auto candidates with special focus on the affected row, column, and 3x3 box
-          const newAutoCandidates = calculateAllCandidates(newBoard);
-          
-          // Double check that affected cells properly had the value removed from candidates
-          for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-              if (newBoard[r][c] === null) {
-                const cellKey = `${r},${c}`;
-                
-                // If cell is in same row, column, or 3x3 box as the filled cell
-                if (r === row || c === col || 
-                    (r >= boxRow && r < boxRow + 3 && c >= boxCol && c < boxCol + 3)) {
-                  // Ensure the value is not a candidate
-                  const candidates = newAutoCandidates.get(cellKey) || [];
-                  if (candidates.includes(value)) {
-                    // Remove the value from candidates if it's still there
-                    newAutoCandidates.set(cellKey, candidates.filter(n => n !== value));
+      // Use the current auto-fill speed from the game state
+      setGameState(prev => {
+        // Get the current speed for this fill operation
+        const currentSpeed = prev.autoFillSpeed;
+        
+        // Set a timeout using the current speed
+        setTimeout(() => {
+          setGameState(innerPrev => {
+            const newBoard = JSON.parse(JSON.stringify(innerPrev.board));
+            
+            // Fill the cell with the value
+            newBoard[row][col] = value;
+            
+            // Clear user candidates for this cell
+            const newUserCandidates = new Map(innerPrev.userCandidates);
+            newUserCandidates.delete(`${row},${col}`);
+            
+            // Compute the 3x3 box coordinates
+            const boxRow = Math.floor(row / 3) * 3;
+            const boxCol = Math.floor(col / 3) * 3;
+            
+            // Recalculate auto candidates with special focus on the affected row, column, and 3x3 box
+            const newAutoCandidates = calculateAllCandidates(newBoard);
+            
+            // Double check that affected cells properly had the value removed from candidates
+            for (let r = 0; r < 9; r++) {
+              for (let c = 0; c < 9; c++) {
+                if (newBoard[r][c] === null) {
+                  const cellKey = `${r},${c}`;
+                  
+                  // If cell is in same row, column, or 3x3 box as the filled cell
+                  if (r === row || c === col || 
+                      (r >= boxRow && r < boxRow + 3 && c >= boxCol && c < boxCol + 3)) {
+                    // Ensure the value is not a candidate
+                    const candidates = newAutoCandidates.get(cellKey) || [];
+                    if (candidates.includes(value)) {
+                      // Remove the value from candidates if it's still there
+                      newAutoCandidates.set(cellKey, candidates.filter(n => n !== value));
+                    }
                   }
                 }
               }
             }
-          }
-          
-          // Preserve user-modified candidates
-          const mergedCandidates = new Map(newAutoCandidates);
-          newUserCandidates.forEach((candidates, cellKey) => {
-            mergedCandidates.set(cellKey, candidates);
+            
+            // Preserve user-modified candidates
+            const mergedCandidates = new Map(newAutoCandidates);
+            newUserCandidates.forEach((candidates, cellKey) => {
+              mergedCandidates.set(cellKey, candidates);
+            });
+            
+            // Check for conflicts
+            const newConflicts = checkAllConflicts(newBoard);
+            
+            // Check if complete
+            const complete = newConflicts.size === 0 && isBoardComplete(newBoard);
+            
+            // Calculate the new speed (10% faster for the next auto-fill)
+            const newSpeed = Math.max(50, currentSpeed * 0.9); // Don't go faster than 50ms
+            
+            return {
+              ...innerPrev,
+              board: newBoard,
+              userCandidates: newUserCandidates,
+              autoCandidates: mergedCandidates,
+              conflicts: newConflicts,
+              isComplete: complete,
+              autoFillSpeed: newSpeed // Update the speed for the next auto-fill
+            };
           });
-          
-          // Check for conflicts
-          const newConflicts = checkAllConflicts(newBoard);
-          
-          // Check if complete
-          const complete = newConflicts.size === 0 && isBoardComplete(newBoard);
-          
-          return {
-            ...prev,
-            board: newBoard,
-            userCandidates: newUserCandidates,
-            autoCandidates: mergedCandidates,
-            conflicts: newConflicts,
-            isComplete: complete
-          };
-        });
-        resolve();
-      }, 500); // 0.5 second delay
+          resolve();
+        }, currentSpeed);
+        
+        return prev; // Return unchanged state from the outer setGameState
+      });
     });
   }, [calculateAllCandidates, checkAllConflicts]);
 
@@ -298,8 +314,12 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
 
   // Update the startAnimatedFlyMode function
   const startAnimatedFlyMode = useCallback(async () => {
-    // Set auto-filling flag to true
-    setGameState(prev => ({ ...prev, isAutoFilling: true }));
+    // Set auto-filling flag to true and reset the speed
+    setGameState(prev => ({ 
+      ...prev, 
+      isAutoFilling: true,
+      autoFillSpeed: 500 // Reset speed to initial value when starting or restarting auto-filling
+    }));
     
     let continueProcessing = true;
     
@@ -659,6 +679,7 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       autoCandidates: new Map<string, number[]>(),
       userCandidates: new Map<string, number[]>(),
       inputMode: 'normal',
+      autoFillSpeed: 500 // Reset speed to initial value when starting or restarting auto-filling
     });
   }, []);
 
