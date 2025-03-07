@@ -8,7 +8,6 @@ import './Game.css';
 
 const Game: React.FC = () => {
   const [puzzlesLoaded, setPuzzlesLoaded] = useState<boolean>(false);
-  const [puzzleCount, setPuzzleCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const boardRef = useRef<HTMLDivElement>(null);
   
@@ -22,7 +21,6 @@ const Game: React.FC = () => {
         // If we have puzzles, set them in the sudokuUtils
         if (puzzles.length > 0) {
           setPuzzles(puzzles);
-          setPuzzleCount(puzzles.length);
           console.log(`Set ${puzzles.length} puzzles for use in the game`);
         } else {
           console.warn('No puzzles were loaded, will use default puzzle');
@@ -152,7 +150,7 @@ const Game: React.FC = () => {
   if (isLoading) {
     return (
       <div className="game-container">
-        <h1>Cosmic Sudoku</h1>
+        <h1>doku</h1>
         <div className="loading-message">Loading puzzles...</div>
       </div>
     );
@@ -160,7 +158,7 @@ const Game: React.FC = () => {
 
   return (
     <div className="game-container">
-      <h1>Cosmic Sudoku</h1>
+      <h1>doku</h1>
       
       <div className="game-board">
         <div ref={boardRef}>
@@ -196,16 +194,16 @@ const Game: React.FC = () => {
             onClick={newGame}
             disabled={isAutoFilling}
           >
-            Launch New Mission
+            New Game
           </button>
         </div>
       </div>
 
       {isComplete && (
         <div className="game-complete">
-          <h2>Stellar Achievement!</h2>
-          <p>You've mastered the cosmic puzzle!</p>
-          <button onClick={newGame}>Launch New Game</button>
+          <h2>Puzzle Solved!</h2>
+          <p>You've completed the puzzle!</p>
+          <button onClick={newGame}>New Game</button>
         </div>
       )}
     </div>

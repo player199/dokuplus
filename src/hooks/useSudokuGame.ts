@@ -177,46 +177,6 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     }));
   }, []);
 
-  // Auto-fill cells with only one candidate (FLY mode)
-  const autoFillSingleCandidates = useCallback((
-    board: SudokuBoard, 
-    candidates: Map<string, number[]>,
-    userCandidatesMap: Map<string, number[]>
-  ): { 
-    updatedBoard: SudokuBoard, 
-    changedSomething: boolean,
-    updatedUserCandidates: Map<string, number[]>
-  } => {
-    const newBoard = JSON.parse(JSON.stringify(board));
-    const newUserCandidates = new Map(userCandidatesMap);
-    let changedSomething = false;
-
-    // Find all cells with only one candidate
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
-        if (newBoard[row][col] === null) {
-          const cellKey = `${row},${col}`;
-          // Use user candidates if available, otherwise use auto candidates
-          const cellCandidates = newUserCandidates.get(cellKey) || candidates.get(cellKey) || [];
-          
-          if (cellCandidates.length === 1) {
-            // Fill the cell with the single candidate
-            newBoard[row][col] = cellCandidates[0];
-            // Clear candidates for this cell
-            newUserCandidates.delete(cellKey);
-            changedSomething = true;
-          }
-        }
-      }
-    }
-    
-    return { 
-      updatedBoard: newBoard, 
-      changedSomething,
-      updatedUserCandidates: newUserCandidates
-    };
-  }, []);
-
   // Add a new function to find a single candidate cell
   const findSingleCandidateCell = useCallback((
     board: SudokuBoard, 

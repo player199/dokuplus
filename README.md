@@ -63,7 +63,7 @@ src/
 1. Click on a cell to select it
 2. Click a number in the number pad or press a number key (1-9) to enter a number
 3. Use the "Notes" mode to mark potential numbers in cells
-4. Use "Auto Notes" to automatically calculate and fill in all possible candidates
+4. Use "Candidates" to automatically calculate and fill in all possible candidates
 5. Use arrow keys for keyboard navigation
 6. Press Delete or Backspace to clear a cell
 

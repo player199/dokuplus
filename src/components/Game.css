@@ -15,24 +15,37 @@ h1 {
   text-shadow: 0 0 10px #7209b7, 0 0 20px #3a0ca3;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 2px;
+  font-size: 2.5rem;
+  position: relative;
+}
+
+h1::after {
+  content: '+';
+  font-size: 1.5rem;
+  position: absolute;
+  top: 0;
+  margin-left: 5px;
+  color: #4cc9f0;
 }
 
 .game-board {
   display: flex;
   flex-direction: row;
   gap: 30px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
 }
 
 .game-controls {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
+  align-self: center;
 }
 
 .new-game-button {
   padding: 12px 20px;
-  margin-top: 20px;
+  margin-top: 10px;
   background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 50%, #3a0ca3 100%);
   color: white;
   border: none;
@@ -44,6 +57,9 @@ h1 {
   box-shadow: 0 0 15px rgba(76, 201, 240, 0.5);
   text-transform: uppercase;
   letter-spacing: 1px;
+  align-self: center;
+  width: 80%;
+  max-width: 200px;
 }
 
 .new-game-button:hover {
