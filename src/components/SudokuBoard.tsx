@@ -13,6 +13,7 @@ interface SudokuBoardProps {
   getNotesForCell: (row: number, col: number) => number[];
   getCandidatesForCell: (row: number, col: number) => number[];
   candidateMode: boolean;
+  isAutoFilling?: boolean;
 }
 
 const SudokuBoard: React.FC<SudokuBoardProps> = ({
@@ -25,9 +26,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   getNotesForCell,
   getCandidatesForCell,
   candidateMode,
+  isAutoFilling = false,
 }) => {
   return (
-    <div className="sudoku-board">
+    <div className={`sudoku-board ${isAutoFilling ? 'auto-filling' : ''}`}>
       {board.map((row, rowIndex) => (
         <div key={rowIndex} className="board-row">
           {row.map((cell, colIndex) => (

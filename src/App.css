@@ -12,7 +12,7 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #9d4eddaa);
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
@@ -35,10 +35,15 @@
 
 .card {
   padding: 2em;
+  background-color: rgba(10, 14, 31, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  border: 1px solid rgba(157, 78, 221, 0.3);
+  box-shadow: 0 0 15px rgba(157, 78, 221, 0.4);
 }
 
 .read-the-docs {
-  color: #888;
+  color: #f0e6ff;
 }
 
 .app {
@@ -47,6 +52,14 @@
   justify-content: center;
   align-items: flex-start;
   padding-top: 40px;
-  background-color: #f5f5f5;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Orbitron', sans-serif;
+  position: relative;
+  z-index: 1;
+}
+
+/* Floating animation for UI elements */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }

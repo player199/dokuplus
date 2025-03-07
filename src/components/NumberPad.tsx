@@ -8,6 +8,9 @@ interface NumberPadProps {
   inputMode: 'normal' | 'candidate';
   onToggleCandidateMode: () => void;
   setInputMode: (mode: 'normal' | 'candidate') => void;
+  flyMode: boolean;
+  onToggleFlyMode: () => void;
+  disabled?: boolean;
 }
 
 const NumberPad: React.FC<NumberPadProps> = ({
@@ -17,21 +20,26 @@ const NumberPad: React.FC<NumberPadProps> = ({
   inputMode,
   onToggleCandidateMode,
   setInputMode,
+  flyMode,
+  onToggleFlyMode,
+  disabled = false,
 }) => {
   return (
-    <div className="number-pad">
+    <div className={`number-pad ${disabled ? 'disabled' : ''}`}>
       <div className="input-mode-buttons">
         <button
           className={`mode-button normal-button ${inputMode === 'normal' ? 'active' : ''}`}
           onClick={() => setInputMode('normal')}
+          disabled={disabled}
         >
           Normal
         </button>
         <button
           className={`mode-button candidate-button ${inputMode === 'candidate' ? 'active' : ''}`}
           onClick={() => setInputMode('candidate')}
+          disabled={disabled}
         >
-          Candidate
+          Notes
         </button>
       </div>
       <div className="number-buttons">
@@ -40,6 +48,7 @@ const NumberPad: React.FC<NumberPadProps> = ({
             key={num}
             className="number-button"
             onClick={() => onNumberClick(num)}
+            disabled={disabled}
           >
             {num}
           </button>
@@ -49,11 +58,26 @@ const NumberPad: React.FC<NumberPadProps> = ({
         <button
           className={`auto-candidate-button ${candidateMode ? 'active' : ''}`}
           onClick={onToggleCandidateMode}
+          disabled={disabled}
         >
-          Auto Candidates
+          Auto Notes
         </button>
-        <button className="clear-button" onClick={onClearClick}>
+        <button 
+          className="clear-button" 
+          onClick={onClearClick}
+          disabled={disabled}
+        >
           Clear
+        </button>
+      </div>
+      <div className="fly-button-container">
+        <button
+          className={`fly-button ${flyMode ? 'active' : ''}`}
+          onClick={onToggleFlyMode}
+          disabled={!candidateMode || disabled}
+          title={!candidateMode ? "Auto Notes must be active to use FLY mode" : "Auto-fill cells with only one candidate"}
+        >
+          FLY
         </button>
       </div>
     </div>

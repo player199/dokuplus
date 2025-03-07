@@ -1,11 +1,57 @@
 .sudoku-board {
   display: inline-flex;
   flex-direction: column;
-  border: 3px solid #333;
-  background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 3px solid rgba(76, 201, 240, 0.8);
+  background: rgba(10, 14, 31, 0.85);
+  box-shadow: 0 0 20px rgba(76, 201, 240, 0.5), 0 0 40px rgba(67, 97, 238, 0.3);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glass panel effect */
+.sudoku-board::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, 
+                rgba(76, 201, 240, 0.05) 0%, 
+                rgba(10, 14, 31, 0) 50%, 
+                rgba(247, 37, 133, 0.05) 100%);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .board-row {
   display: flex;
+}
+
+/* Animation for auto-filled cells in FLY mode */
+@keyframes cellFill {
+  0% { background: rgba(76, 201, 240, 0.1); }
+  50% { background: rgba(76, 201, 240, 0.5); }
+  100% { background: rgba(26, 27, 70, 0.7); }
+}
+
+/* Apply this class to auto-filled cells */
+.sudoku-cell.auto-filled {
+  animation: cellFill 0.5s forwards;
+}
+
+.sudoku-board.auto-filling {
+  box-shadow: 0 0 20px rgba(247, 37, 133, 0.5), 0 0 40px rgba(247, 37, 133, 0.3);
+  border-color: rgba(247, 37, 133, 0.8);
+}
+
+/* Add a subtle pulsing animation to the board during auto-filling */
+@keyframes boardPulse {
+  0% { box-shadow: 0 0 20px rgba(247, 37, 133, 0.3), 0 0 40px rgba(247, 37, 133, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(247, 37, 133, 0.6), 0 0 50px rgba(247, 37, 133, 0.4); }
+  100% { box-shadow: 0 0 20px rgba(247, 37, 133, 0.3), 0 0 40px rgba(247, 37, 133, 0.2); }
+}
+
+.sudoku-board.auto-filling {
+  animation: boardPulse 1s infinite;
 } 

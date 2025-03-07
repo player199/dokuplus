@@ -15,6 +15,8 @@ interface SudokuGameState {
   notes: Map<string, number[]>;
   conflicts: Map<string, boolean>; // Track cells that have conflicts
   candidateMode: boolean; // Track if candidate mode is active
+  flyMode: boolean; // Track if FLY mode is active
+  isAutoFilling: boolean; // Track if auto-filling is in progress
   autoCandidates: Map<string, number[]>; // Store automatically calculated candidates
   userCandidates: Map<string, number[]>; // Store user-modified candidates
   inputMode: 'normal' | 'candidate'; // Input mode for numpad
@@ -32,6 +34,8 @@ export const useSudokuGame = () => {
     notes: new Map<string, number[]>(),
     conflicts: new Map<string, boolean>(),
     candidateMode: false,
+    flyMode: false,
+    isAutoFilling: false,
     autoCandidates: new Map<string, number[]>(),
     userCandidates: new Map<string, number[]>(),
     inputMode: 'normal',
@@ -193,9 +197,164 @@ export const useSudokuGame = () => {
     }
   }, [gameState.board, gameState.candidateMode, isFixedCell]);
 
+  // Auto-fill cells with only one candidate (FLY mode)
+  const autoFillSingleCandidates = useCallback((
+    board: SudokuBoard, 
+    candidates: Map<string, number[]>,
+    userCandidatesMap: Map<string, number[]>
+  ): { 
+    updatedBoard: SudokuBoard, 
+    changedSomething: boolean,
+    updatedUserCandidates: Map<string, number[]>
+  } => {
+    const newBoard = JSON.parse(JSON.stringify(board));
+    const newUserCandidates = new Map(userCandidatesMap);
+    let changedSomething = false;
+
+    // Find all cells with only one candidate
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (newBoard[row][col] === null) {
+          const cellKey = `${row},${col}`;
+          // Use user candidates if available, otherwise use auto candidates
+          const cellCandidates = newUserCandidates.get(cellKey) || candidates.get(cellKey) || [];
+          
+          if (cellCandidates.length === 1) {
+            // Fill the cell with the single candidate
+            newBoard[row][col] = cellCandidates[0];
+            // Clear candidates for this cell
+            newUserCandidates.delete(cellKey);
+            changedSomething = true;
+          }
+        }
+      }
+    }
+    
+    return { 
+      updatedBoard: newBoard, 
+      changedSomething,
+      updatedUserCandidates: newUserCandidates
+    };
+  }, []);
+
+  // Add a new function to find a single candidate cell
+  const findSingleCandidateCell = useCallback((
+    board: SudokuBoard, 
+    candidates: Map<string, number[]>,
+    userCandidatesMap: Map<string, number[]>
+  ): { 
+    found: boolean, 
+    row: number, 
+    col: number, 
+    value: number 
+  } => {
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (board[row][col] === null) {
+          const cellKey = `${row},${col}`;
+          // Use user candidates if available, otherwise use auto candidates
+          const cellCandidates = userCandidatesMap.get(cellKey) || candidates.get(cellKey) || [];
+          
+          if (cellCandidates.length === 1) {
+            return { 
+              found: true, 
+              row, 
+              col, 
+              value: cellCandidates[0] 
+            };
+          }
+        }
+      }
+    }
+    return { found: false, row: -1, col: -1, value: -1 };
+  }, []);
+
+  // Add a function to fill a single cell with delay
+  const fillSingleCell = useCallback((
+    row: number, 
+    col: number, 
+    value: number
+  ) => {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setGameState(prev => {
+          const newBoard = JSON.parse(JSON.stringify(prev.board));
+          
+          // Fill the cell with the value
+          newBoard[row][col] = value;
+          
+          // Clear user candidates for this cell
+          const newUserCandidates = new Map(prev.userCandidates);
+          newUserCandidates.delete(`${row},${col}`);
+          
+          // Recalculate auto candidates
+          const newAutoCandidates = calculateAllCandidates(newBoard);
+          
+          // Check for conflicts
+          const newConflicts = checkAllConflicts(newBoard);
+          
+          // Check if complete
+          const complete = newConflicts.size === 0 && isBoardComplete(newBoard);
+          
+          return {
+            ...prev,
+            board: newBoard,
+            userCandidates: newUserCandidates,
+            autoCandidates: newAutoCandidates,
+            conflicts: newConflicts,
+            isComplete: complete
+          };
+        });
+        resolve();
+      }, 500); // 0.5 second delay
+    });
+  }, [calculateAllCandidates, checkAllConflicts]);
+
+  // Add a helper function to properly access current state
+  const getCurrentGameState = useCallback(() => {
+    return new Promise<SudokuGameState>((resolve) => {
+      setGameState(prev => {
+        resolve(prev);
+        return prev;
+      });
+    });
+  }, []);
+
+  // Update the startAnimatedFlyMode function
+  const startAnimatedFlyMode = useCallback(async () => {
+    // Set auto-filling flag to true
+    setGameState(prev => ({ ...prev, isAutoFilling: true }));
+    
+    let continueProcessing = true;
+    
+    while (continueProcessing) {
+      // Get the current state to work with latest data
+      const currentState = await getCurrentGameState();
+      
+      // Find a cell with only one candidate
+      const { found, row, col, value } = findSingleCandidateCell(
+        currentState.board, 
+        currentState.autoCandidates, 
+        currentState.userCandidates
+      );
+      
+      if (found) {
+        // Fill this cell with a delay
+        await fillSingleCell(row, col, value);
+      } else {
+        // No more cells to fill
+        continueProcessing = false;
+      }
+    }
+    
+    // Set auto-filling flag back to false
+    setGameState(prev => ({ ...prev, isAutoFilling: false }));
+  }, [findSingleCandidateCell, fillSingleCell, getCurrentGameState]);
+
   // Set a number in the selected cell
   const setNumber = useCallback((num: number) => {
     if (!gameState.selectedCell) return;
+    if (gameState.isAutoFilling) return; // Don't allow input during auto-filling
 
     const [row, col] = gameState.selectedCell;
 
@@ -279,7 +438,7 @@ export const useSudokuGame = () => {
         // Check if the game is complete (no conflicts and no empty cells)
         const complete = newConflicts.size === 0 && isBoardComplete(newBoard);
 
-        return {
+        const result = {
           ...prev,
           board: newBoard,
           isComplete: complete,
@@ -288,15 +447,28 @@ export const useSudokuGame = () => {
           autoCandidates: newAutoCandidates,
           userCandidates: newUserCandidates
         };
+
+        // If FLY mode is active, start the animated filling process
+        if (prev.flyMode && prev.candidateMode && newConflicts.size === 0) {
+          // Start the animated filling process on the next tick
+          setTimeout(() => {
+            startAnimatedFlyMode();
+          }, 10);
+        }
+
+        return result;
       });
     }
   }, [
     gameState.selectedCell, 
     gameState.inputMode,
     gameState.candidateMode,
-    isFixedCell, 
-    checkAllConflicts, 
-    calculateAllCandidates
+    gameState.flyMode,
+    gameState.isAutoFilling,
+    isFixedCell,
+    calculateAllCandidates,
+    checkAllConflicts,
+    startAnimatedFlyMode
   ]);
 
   // Clear the selected cell
@@ -356,6 +528,29 @@ export const useSudokuGame = () => {
     });
   }, [calculateAllCandidates]);
 
+  // Toggle the FLY mode
+  const toggleFlyMode = useCallback(() => {
+    if (!gameState.candidateMode) return; // Only allow FLY mode when candidate mode is active
+    if (gameState.isAutoFilling) return; // Don't allow toggling during auto-filling
+    
+    setGameState((prev) => {
+      const newFlyMode = !prev.flyMode;
+      
+      // If turning FLY mode on, immediately start the animated filling
+      if (newFlyMode) {
+        // Start the animated filling on the next tick
+        setTimeout(() => {
+          startAnimatedFlyMode();
+        }, 10);
+      }
+      
+      return {
+        ...prev,
+        flyMode: newFlyMode
+      };
+    });
+  }, [gameState.candidateMode, gameState.isAutoFilling, startAnimatedFlyMode]);
+
   // Start a new game
   const newGame = useCallback(() => {
     const { puzzle: newPuzzle, solution: newSolution } = generateSudokuPuzzle();
@@ -368,6 +563,8 @@ export const useSudokuGame = () => {
       notes: new Map<string, number[]>(),
       conflicts: new Map<string, boolean>(),
       candidateMode: false,
+      flyMode: false,
+      isAutoFilling: false,
       autoCandidates: new Map<string, number[]>(),
       userCandidates: new Map<string, number[]>(),
       inputMode: 'normal',
@@ -407,11 +604,14 @@ export const useSudokuGame = () => {
     selectedCell: gameState.selectedCell,
     isComplete: gameState.isComplete,
     candidateMode: gameState.candidateMode,
+    flyMode: gameState.flyMode,
+    isAutoFilling: gameState.isAutoFilling,
     inputMode: gameState.inputMode,
     selectCell,
     setNumber,
     clearCell,
     toggleCandidateMode,
+    toggleFlyMode,
     toggleCellCandidate,
     setInputMode,
     newGame,

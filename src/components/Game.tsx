@@ -10,11 +10,14 @@ const Game: React.FC = () => {
     selectedCell,
     isComplete,
     candidateMode,
+    flyMode,
+    isAutoFilling,
     inputMode,
     selectCell,
     setNumber,
     clearCell,
     toggleCandidateMode,
+    toggleFlyMode,
     toggleCellCandidate,
     setInputMode,
     newGame,
@@ -86,7 +89,7 @@ const Game: React.FC = () => {
 
   return (
     <div className="game-container">
-      <h1>Sudoku</h1>
+      <h1>Cosmic Sudoku</h1>
       
       <div className="game-board">
         <SudokuBoard
@@ -99,6 +102,7 @@ const Game: React.FC = () => {
           getNotesForCell={getNotesForCell}
           getCandidatesForCell={getCandidatesForCell}
           candidateMode={candidateMode}
+          isAutoFilling={isAutoFilling}
         />
         
         <div className="game-controls">
@@ -106,22 +110,29 @@ const Game: React.FC = () => {
             onNumberClick={setNumber}
             onClearClick={clearCell}
             candidateMode={candidateMode}
+            flyMode={flyMode}
             inputMode={inputMode}
             onToggleCandidateMode={toggleCandidateMode}
+            onToggleFlyMode={toggleFlyMode}
             setInputMode={setInputMode}
+            disabled={isAutoFilling}
           />
           
-          <button className="new-game-button" onClick={newGame}>
-            New Game
+          <button 
+            className="new-game-button" 
+            onClick={newGame}
+            disabled={isAutoFilling}
+          >
+            Launch New Mission
           </button>
         </div>
       </div>
 
       {isComplete && (
         <div className="game-complete">
-          <h2>Congratulations!</h2>
-          <p>You completed the puzzle!</p>
-          <button onClick={newGame}>Play Again</button>
+          <h2>Stellar Achievement!</h2>
+          <p>You've mastered the cosmic puzzle!</p>
+          <button onClick={newGame}>Launch New Game</button>
         </div>
       )}
     </div>

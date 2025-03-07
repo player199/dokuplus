@@ -1,11 +1,11 @@
 :root {
-  font-family: Arial, sans-serif;
+  font-family: 'Orbitron', 'Arial', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: #213547;
-  background-color: #f5f5f5;
+  color-scheme: dark;
+  color: #e0e8ff;
+  background-color: #0a0e1f;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -19,45 +19,79 @@
   padding: 0;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+
 body {
   margin: 0;
   display: flex;
   min-width: 320px;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #0a0e1f 0%, #1a1b46 50%, #3a1046 100%);
+  background-attachment: fixed;
+}
+
+/* Stars background */
+body::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  z-index: -1;
+  animation: subtleMovement 100s linear infinite;
+}
+
+/* Subtle star movement animation */
+@keyframes subtleMovement {
+  from { background-position: 0 0, 40px 60px, 130px 270px; }
+  to { background-position: 550px 550px, 390px 410px, 680px 820px; }
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  color: #f0c5ff;
+  text-shadow: 0 0 10px #9d4edd, 0 0 20px #9d4edd;
 }
 
 button {
   border-radius: 4px;
-  border: 1px solid transparent;
+  border: 1px solid #7b2cbf;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #f9f9f9;
+  font-family: 'Orbitron', sans-serif;
+  background-color: #3a0ca3;
+  color: #f0e6ff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s;
+  box-shadow: 0 0 8px rgba(123, 44, 191, 0.6);
 }
 
 button:hover {
-  border-color: #646cff;
+  border-color: #9d4edd;
+  box-shadow: 0 0 12px rgba(157, 78, 221, 0.8);
+  transform: translateY(-2px);
 }
 
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 4px auto #9d4edd;
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #e0e8ff;
+    background-color: #0a0e1f;
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #3a0ca3;
   }
 }

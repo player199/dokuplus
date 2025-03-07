@@ -5,41 +5,52 @@
   width: 40px;
   height: 40px;
   font-size: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid rgba(76, 201, 240, 0.3);
   cursor: pointer;
   position: relative;
-  background-color: white;
-  transition: all 0.2s ease;
+  background: rgba(26, 27, 70, 0.5);
+  transition: all 0.3s ease;
+  color: #e0e8ff;
 }
 
 .sudoku-cell.right-border {
-  border-right: 2px solid #333;
+  border-right: 2px solid rgba(76, 201, 240, 0.8);
 }
 
 .sudoku-cell.bottom-border {
-  border-bottom: 2px solid #333;
+  border-bottom: 2px solid rgba(76, 201, 240, 0.8);
 }
 
 .sudoku-cell.selected {
-  background-color: #e6f7ff;
-  box-shadow: inset 0 0 0 2px #1890ff;
+  background: rgba(76, 201, 240, 0.2);
+  box-shadow: inset 0 0 0 2px rgba(76, 201, 240, 0.8), 0 0 10px rgba(76, 201, 240, 0.5);
+  z-index: 2;
 }
 
 .sudoku-cell.fixed {
   font-weight: bold;
-  color: #222;
+  color: #f72585;
+  text-shadow: 0 0 5px rgba(247, 37, 133, 0.5);
 }
 
 .sudoku-cell.conflict {
   color: #ff4d4f;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { text-shadow: 0 0 5px rgba(255, 77, 79, 0.5); }
+  50% { text-shadow: 0 0 10px rgba(255, 77, 79, 0.8); }
+  100% { text-shadow: 0 0 5px rgba(255, 77, 79, 0.5); }
 }
 
 .sudoku-cell:not(.fixed):hover {
-  background-color: #f0f8ff;
+  background: rgba(58, 12, 163, 0.3);
+  box-shadow: 0 0 8px rgba(76, 201, 240, 0.4);
 }
 
 .cell-value {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .conflict-indicator {
@@ -50,9 +61,11 @@
   height: 8px;
   background-color: #ff4d4f;
   border-radius: 50%;
+  box-shadow: 0 0 5px #ff4d4f, 0 0 10px #ff4d4f;
+  animation: pulse 1.5s infinite;
 }
 
-/* Notes styling - blue color scheme */
+/* Notes styling - cosmic blue color scheme */
 .notes-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -66,31 +79,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: rgba(224, 232, 255, 0.5);
   cursor: pointer;
   border-radius: 2px;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .note.visible {
-  color: #52c41a; /* Green color for notes, matching the notes button */
+  color: #4cc9f0; /* Bright blue for notes */
   font-weight: bold;
+  text-shadow: 0 0 3px rgba(76, 201, 240, 0.5);
 }
 
 .note.hovered:not(.visible) {
-  color: #b7eb8f; /* Lighter green for hovering over non-visible notes */
-  background-color: #f6ffed;
+  color: #90e0ef; /* Lighter blue for hovering over non-visible notes */
+  background-color: rgba(76, 201, 240, 0.1);
 }
 
 .note.visible:hover {
-  background-color: #f6ffed;
+  background-color: rgba(76, 201, 240, 0.2);
 }
 
 .note.cell-selected:hover {
   cursor: pointer;
 }
 
-/* Candidates styling - green color scheme */
+/* Candidates styling - cosmic pink color scheme */
 .candidates-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -104,24 +118,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: rgba(224, 232, 255, 0.5);
   cursor: pointer;
   border-radius: 2px;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .candidate.visible {
-  color: #1890ff; /* Blue color for candidates, matching the candidate button */
+  color: #f72585; /* Bright pink for candidates */
   font-weight: bold;
+  text-shadow: 0 0 3px rgba(247, 37, 133, 0.5);
 }
 
 .candidate.hovered:not(.visible) {
-  color: #91d5ff; /* Lighter blue for hovering over non-visible candidates */
-  background-color: #e6f7ff;
+  color: #ff758f; /* Lighter pink for hovering over non-visible candidates */
+  background-color: rgba(247, 37, 133, 0.1);
 }
 
 .candidate.visible:hover {
-  background-color: #e6f7ff;
+  background-color: rgba(247, 37, 133, 0.2);
 }
 
 .candidate.cell-selected:hover {

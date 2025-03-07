@@ -1,63 +1,72 @@
-# React Sudoku Game
+# Cosmic Sudoku
 
-A fast, lightweight Sudoku game built with React and Vite.
+A space-themed Sudoku game built with React and TypeScript.
 
 ## Features
 
-- Classic Sudoku gameplay
-- Keyboard controls
-- Notes mode for pencil marking
-- Responsive design for all devices
-- Fast performance
+- Classic Sudoku gameplay with a cosmic space theme
+- Clean, responsive UI design
+- Notes and candidates system for solving strategies
+- Automated candidates feature
+- Keyboard navigation support
+- Conflict detection
+- Game completion detection and celebration
 
-## How to Play
+## Technologies Used
 
-1. Click on a cell to select it
-2. Enter a number (1-9) using your keyboard or the number pad
-3. Use arrow keys to navigate between cells
-4. Toggle notes mode to jot down possibilities
-5. Clear a cell using Delete or Backspace
-6. Start a new game at any time
+- React
+- TypeScript
+- CSS
+- Vite
 
-## Controls
+## Project Structure
 
-- **Mouse**: Click cells and buttons
-- **Keyboard**: 
-  - Numbers 1-9: Enter a value
-  - Arrow keys: Navigate the board
-  - Delete/Backspace: Clear a cell
+```
+src/
+├── components/       # UI components
+│   ├── Game.tsx         # Main game component
+│   ├── SudokuBoard.tsx  # Board component
+│   ├── SudokuCell.tsx   # Cell component
+│   ├── NumberPad.tsx    # Number input component
+│   └── *.css            # Component styles
+├── hooks/            # Custom React hooks
+│   └── useSudokuGame.ts # Game logic and state management
+├── utils/            # Utility functions
+│   └── sudokuUtils.ts   # Sudoku-specific functions
+├── assets/           # Static assets
+├── App.tsx           # Root component
+└── main.tsx          # Entry point
+```
 
-## Development
-
-This project was built with Vite for optimal speed and React with TypeScript for type safety.
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 14+
+- Node.js (v14 or higher)
 - npm or yarn
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone [repository-url]
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+4. Open your browser and navigate to `http://localhost:5173`
 
-# Navigate to the project directory
-cd sudoku-game
+## Game Instructions
 
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
-```
-
-## Building for Production
-
-```bash
-npm run build
-```
+1. Click on a cell to select it
+2. Click a number in the number pad or press a number key (1-9) to enter a number
+3. Use the "Notes" mode to mark potential numbers in cells
+4. Use "Auto Notes" to automatically calculate and fill in all possible candidates
+5. Use arrow keys for keyboard navigation
+6. Press Delete or Backspace to clear a cell
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
