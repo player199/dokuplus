@@ -48,6 +48,7 @@ const Game: React.FC = () => {
     isAutoFilling,
     inputMode,
     canUndoFlySession,
+    errorPulse,
     selectCell,
     setNumber,
     clearCell,
@@ -176,6 +177,7 @@ const Game: React.FC = () => {
             getCandidatesForCell={getCandidatesForCell}
             candidateMode={candidateMode}
             isAutoFilling={isAutoFilling}
+            errorPulse={errorPulse}
           />
           
           <button 
@@ -224,4 +226,4 @@ const Game: React.FC = () => {
   );
 };
 
-export default Game;    
+export default Game;      

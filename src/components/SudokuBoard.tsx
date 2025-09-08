@@ -14,6 +14,7 @@ interface SudokuBoardProps {
   getCandidatesForCell: (row: number, col: number) => number[];
   candidateMode: boolean;
   isAutoFilling?: boolean;
+  errorPulse?: boolean;
 }
 
 const SudokuBoard: React.FC<SudokuBoardProps> = ({
@@ -27,9 +28,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   getCandidatesForCell,
   candidateMode,
   isAutoFilling = false,
+  errorPulse = false,
 }) => {
   return (
-    <div className={`sudoku-board ${isAutoFilling ? 'auto-filling' : ''}`}>
+    <div className={`sudoku-board ${isAutoFilling ? 'auto-filling' : ''} ${errorPulse ? 'error-pulse' : ''}`}>
       {board.map((row, rowIndex) => (
         <div key={rowIndex} className="board-row">
           {row.map((cell, colIndex) => (
@@ -58,4 +60,4 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   );
 };
 
-export default SudokuBoard; 
+export default SudokuBoard;  

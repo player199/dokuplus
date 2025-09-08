@@ -23,6 +23,7 @@ interface SudokuGameState {
   autoFillSpeed: number; // Track the current auto-fill speed
   flyModeSessionSnapshot: SudokuGameState | null; // Snapshot of state before FLY mode session
   canUndoFlySession: boolean; // Whether there's a FLY session that can be undone
+  errorPulse: boolean; // Whether to show error pulse animation
 }
 
 export const useSudokuGame = (isInitialized: boolean = true) => {
@@ -54,7 +55,8 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       inputMode: 'normal' as const,
       autoFillSpeed: 500, // Initial speed of 500ms
       flyModeSessionSnapshot: null,
-      canUndoFlySession: false
+      canUndoFlySession: false,
+      errorPulse: false
     };
   });
   
@@ -80,7 +82,8 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
         inputMode: 'normal',
         autoFillSpeed: 500, // Reset speed to initial value when starting or restarting auto-filling
         flyModeSessionSnapshot: null,
-        canUndoFlySession: false
+        canUndoFlySession: false,
+        errorPulse: false
       });
     }
   }, [isInitialized]);
@@ -411,9 +414,17 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
         setGameState(prev => ({ 
           ...prev, 
           isAutoFilling: false,
-          canUndoFlySession: true
+          flyMode: false,
+          canUndoFlySession: true,
+          selectedCell: [errorCondition.row, errorCondition.col],
+          errorPulse: true
         }));
-        alert(`FLY mode stopped: Empty cell at row ${errorCondition.row + 1}, column ${errorCondition.col + 1} has no valid candidates. This indicates an error in the puzzle.`);
+        
+        // Clear the error pulse after animation completes
+        setTimeout(() => {
+          setGameState(prev => ({ ...prev, errorPulse: false }));
+        }, 600);
+        
         return;
       }
       
@@ -774,7 +785,8 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       userCandidates: new Map<string, number[]>(),
       autoFillSpeed: 500,
       flyModeSessionSnapshot: null,
-      canUndoFlySession: false
+      canUndoFlySession: false,
+      errorPulse: false
     }));
   }, []);
 
@@ -797,7 +809,8 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       inputMode: 'normal',
       autoFillSpeed: 500, // Reset speed to initial value when starting or restarting auto-filling
       flyModeSessionSnapshot: null,
-      canUndoFlySession: false
+      canUndoFlySession: false,
+      errorPulse: false
     });
   }, []);
 
@@ -848,6 +861,7 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     isAutoFilling: gameState.isAutoFilling,
     inputMode: gameState.inputMode,
     canUndoFlySession: gameState.canUndoFlySession,
+    errorPulse: gameState.errorPulse,
     selectCell,
     setNumber,
     clearCell,
