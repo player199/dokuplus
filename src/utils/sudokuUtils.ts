@@ -88,7 +88,7 @@ export const solveSudoku = (board: SudokuBoard): SudokuBoard | null => {
 // Helper function for solving Sudoku (backtracking algorithm)
 const solveBoard = (board: SudokuBoard): boolean => {
   // Find an empty cell
-  let emptyCell = findEmptyCell(board);
+  const emptyCell = findEmptyCell(board);
   if (!emptyCell) {
     // No empty cells means the puzzle is solved
     return true;
