@@ -408,7 +408,11 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       );
       
       if (errorCondition.found) {
-        setGameState(prev => ({ ...prev, isAutoFilling: false }));
+        setGameState(prev => ({ 
+          ...prev, 
+          isAutoFilling: false,
+          canUndoFlySession: true
+        }));
         alert(`FLY mode stopped: Empty cell at row ${errorCondition.row + 1}, column ${errorCondition.col + 1} has no valid candidates. This indicates an error in the puzzle.`);
         return;
       }
@@ -758,6 +762,22 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     });
   }, [gameState.candidateMode, gameState.isAutoFilling, startAnimatedFlyMode]);
 
+  const resetPuzzle = useCallback(() => {
+    setGameState(prev => ({
+      ...prev,
+      board: JSON.parse(JSON.stringify(prev.originalBoard)),
+      selectedCell: null,
+      isComplete: false,
+      notes: new Map<string, number[]>(),
+      conflicts: new Map<string, boolean>(),
+      autoCandidates: new Map<string, number[]>(),
+      userCandidates: new Map<string, number[]>(),
+      autoFillSpeed: 500,
+      flyModeSessionSnapshot: null,
+      canUndoFlySession: false
+    }));
+  }, []);
+
   // Start a new game
   const newGame = useCallback(() => {
     const { puzzle: newPuzzle, solution: newSolution } = generateSudokuPuzzle();
@@ -837,6 +857,7 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     toggleCellCandidate,
     setInputMode,
     newGame,
+    resetPuzzle,
     isFixedCell,
     getNotesForCell,
     getCandidatesForCell,

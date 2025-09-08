@@ -57,6 +57,7 @@ const Game: React.FC = () => {
     toggleCellCandidate,
     setInputMode,
     newGame,
+    resetPuzzle,
     isFixedCell,
     getNotesForCell,
     getCandidatesForCell,
@@ -176,6 +177,15 @@ const Game: React.FC = () => {
             candidateMode={candidateMode}
             isAutoFilling={isAutoFilling}
           />
+          
+          <button 
+            className="reset-puzzle-button" 
+            onClick={resetPuzzle}
+            disabled={isAutoFilling}
+            title="Reset puzzle to original state (clear all user inputs)"
+          >
+            Reset Puzzle
+          </button>
         </div>
         
         <div className="game-controls">
@@ -214,4 +224,4 @@ const Game: React.FC = () => {
   );
 };
 
-export default Game;  
+export default Game;    
