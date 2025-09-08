@@ -21,6 +21,8 @@ interface SudokuGameState {
   userCandidates: Map<string, number[]>; // Store user-modified candidates
   inputMode: 'normal' | 'candidate'; // Input mode for numpad
   autoFillSpeed: number; // Track the current auto-fill speed
+  flyModeSessionSnapshot: SudokuGameState | null; // Snapshot of state before FLY mode session
+  canUndoFlySession: boolean; // Whether there's a FLY session that can be undone
 }
 
 export const useSudokuGame = (isInitialized: boolean = true) => {
@@ -50,7 +52,9 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       autoCandidates: new Map<string, number[]>(),
       userCandidates: new Map<string, number[]>(),
       inputMode: 'normal' as const,
-      autoFillSpeed: 500 // Initial speed of 500ms
+      autoFillSpeed: 500, // Initial speed of 500ms
+      flyModeSessionSnapshot: null,
+      canUndoFlySession: false
     };
   });
   
@@ -74,7 +78,9 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
         autoCandidates: new Map<string, number[]>(),
         userCandidates: new Map<string, number[]>(),
         inputMode: 'normal',
-        autoFillSpeed: 500 // Reset speed to initial value when starting or restarting auto-filling
+        autoFillSpeed: 500, // Reset speed to initial value when starting or restarting auto-filling
+        flyModeSessionSnapshot: null,
+        canUndoFlySession: false
       });
     }
   }, [isInitialized]);
@@ -178,6 +184,33 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       ...prev,
       inputMode: mode,
     }));
+  }, []);
+
+  // Add a function to detect empty cells with no candidates (error condition)
+  const findEmptyCellWithNoCandidates = useCallback((
+    board: SudokuBoard,
+    candidates: Map<string, number[]>,
+    userCandidatesMap: Map<string, number[]>
+  ): { found: boolean, row: number, col: number } => {
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (board[row][col] === null) {
+          const cellKey = `${row},${col}`;
+          // Use user candidates if available, otherwise use auto candidates
+          let cellCandidates = userCandidatesMap.get(cellKey) || candidates.get(cellKey) || [];
+          
+          // Extra validation: ensure the candidates are actually valid
+          cellCandidates = cellCandidates.filter(num => {
+            return isValidPlacement(board, row, col, num);
+          });
+          
+          if (cellCandidates.length === 0) {
+            return { found: true, row, col };
+          }
+        }
+      }
+    }
+    return { found: false, row: -1, col: -1 };
   }, []);
 
   // Add a new function to find a single candidate cell
@@ -337,6 +370,19 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
         effectiveCandidates.set(cellKey, candidates);
       });
       
+      // Check for error condition: empty cells with no candidates
+      const errorCondition = findEmptyCellWithNoCandidates(
+        currentState.board,
+        effectiveCandidates,
+        currentState.userCandidates
+      );
+      
+      if (errorCondition.found) {
+        setGameState(prev => ({ ...prev, isAutoFilling: false }));
+        alert(`FLY mode stopped: Empty cell at row ${errorCondition.row + 1}, column ${errorCondition.col + 1} has no valid candidates. This indicates an error in the puzzle.`);
+        return;
+      }
+      
       // Find a cell with only one candidate using the fresh candidates
       const { found, row, col, value } = findSingleCandidateCell(
         currentState.board, 
@@ -356,9 +402,13 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       }
     }
     
-    // Set auto-filling flag back to false
-    setGameState(prev => ({ ...prev, isAutoFilling: false }));
-  }, [findSingleCandidateCell, fillSingleCell, getCurrentGameState, calculateAllCandidates]);
+    // Set auto-filling flag back to false and mark session as undoable
+    setGameState(prev => ({ 
+      ...prev, 
+      isAutoFilling: false,
+      canUndoFlySession: true
+    }));
+  }, [findSingleCandidateCell, findEmptyCellWithNoCandidates, fillSingleCell, getCurrentGameState, calculateAllCandidates]);
 
   // Toggle a number in notes or candidates when clicking directly on the number in a cell
   const toggleCellCandidate = useCallback((row: number, col: number, num: number) => {
@@ -639,6 +689,22 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     });
   }, [calculateAllCandidates]);
 
+  // Undo the most recent FLY mode session
+  const undoFlyModeSession = useCallback(() => {
+    if (!gameState.canUndoFlySession || !gameState.flyModeSessionSnapshot) return;
+    
+    setGameState((prev) => {
+      const snapshot = prev.flyModeSessionSnapshot;
+      if (!snapshot) return prev;
+      
+      return {
+        ...snapshot,
+        flyModeSessionSnapshot: null,
+        canUndoFlySession: false
+      };
+    });
+  }, [gameState.canUndoFlySession, gameState.flyModeSessionSnapshot]);
+
   // Toggle the FLY mode
   const toggleFlyMode = useCallback(() => {
     if (!gameState.candidateMode) return; // Only allow FLY mode when candidate mode is active
@@ -647,12 +713,25 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     setGameState((prev) => {
       const newFlyMode = !prev.flyMode;
       
-      // If turning FLY mode on, immediately start the animated filling
+      // If turning FLY mode on, capture current state as session snapshot
       if (newFlyMode) {
+        const sessionSnapshot = {
+          ...prev,
+          flyModeSessionSnapshot: null, // Don't include nested snapshots
+          canUndoFlySession: false
+        };
+        
         // Start the animated filling on the next tick
         setTimeout(() => {
           startAnimatedFlyMode();
         }, 10);
+        
+        return {
+          ...prev,
+          flyMode: newFlyMode,
+          flyModeSessionSnapshot: sessionSnapshot,
+          canUndoFlySession: false // Will be set to true when session completes
+        };
       }
       
       return {
@@ -679,7 +758,9 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
       autoCandidates: new Map<string, number[]>(),
       userCandidates: new Map<string, number[]>(),
       inputMode: 'normal',
-      autoFillSpeed: 500 // Reset speed to initial value when starting or restarting auto-filling
+      autoFillSpeed: 500, // Reset speed to initial value when starting or restarting auto-filling
+      flyModeSessionSnapshot: null,
+      canUndoFlySession: false
     });
   }, []);
 
@@ -729,11 +810,13 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     flyMode: gameState.flyMode,
     isAutoFilling: gameState.isAutoFilling,
     inputMode: gameState.inputMode,
+    canUndoFlySession: gameState.canUndoFlySession,
     selectCell,
     setNumber,
     clearCell,
     toggleCandidateMode,
     toggleFlyMode,
+    undoFlyModeSession,
     toggleCellCandidate,
     setInputMode,
     newGame,

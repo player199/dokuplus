@@ -47,11 +47,13 @@ const Game: React.FC = () => {
     flyMode,
     isAutoFilling,
     inputMode,
+    canUndoFlySession,
     selectCell,
     setNumber,
     clearCell,
     toggleCandidateMode,
     toggleFlyMode,
+    undoFlyModeSession,
     toggleCellCandidate,
     setInputMode,
     newGame,
@@ -185,6 +187,8 @@ const Game: React.FC = () => {
             inputMode={inputMode}
             onToggleCandidateMode={toggleCandidateMode}
             onToggleFlyMode={toggleFlyMode}
+            canUndoFlySession={canUndoFlySession}
+            onUndoFlySession={undoFlyModeSession}
             setInputMode={setInputMode}
             disabled={isAutoFilling}
           />
@@ -210,4 +214,4 @@ const Game: React.FC = () => {
   );
 };
 
-export default Game; 
+export default Game;  
