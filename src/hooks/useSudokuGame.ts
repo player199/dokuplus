@@ -347,11 +347,41 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
 
   // Update the startAnimatedFlyMode function
   const startAnimatedFlyMode = useCallback(async () => {
-    // Set auto-filling flag to true and reset the speed
+    // Get current state to check if there are cells to fill
+    const currentState = await getCurrentGameState();
+    
+    // Calculate fresh candidates to see if there are any single-candidate cells
+    const freshAutoCandidates = calculateAllCandidates(currentState.board);
+    const effectiveCandidates = new Map(freshAutoCandidates);
+    currentState.userCandidates.forEach((candidates, cellKey) => {
+      effectiveCandidates.set(cellKey, candidates);
+    });
+    
+    // Check if there are any cells with single candidates before starting
+    const { found } = findSingleCandidateCell(
+      currentState.board, 
+      effectiveCandidates, 
+      currentState.userCandidates
+    );
+    
+    // Only capture session snapshot if we actually have cells to fill
+    if (!found) {
+      return;
+    }
+    
+    const sessionSnapshot = {
+      ...currentState,
+      flyModeSessionSnapshot: null, // Don't include nested snapshots
+      canUndoFlySession: false
+    };
+    
+    // Set auto-filling flag to true, reset the speed, and capture snapshot
     setGameState(prev => ({ 
       ...prev, 
       isAutoFilling: true,
-      autoFillSpeed: 500 // Reset speed to initial value when starting or restarting auto-filling
+      autoFillSpeed: 500, // Reset speed to initial value when starting or restarting auto-filling
+      flyModeSessionSnapshot: sessionSnapshot,
+      canUndoFlySession: false // Will be set to true when session completes
     }));
     
     let continueProcessing = true;
@@ -713,25 +743,12 @@ export const useSudokuGame = (isInitialized: boolean = true) => {
     setGameState((prev) => {
       const newFlyMode = !prev.flyMode;
       
-      // If turning FLY mode on, capture current state as session snapshot
+      // If turning FLY mode on, start the animated filling
       if (newFlyMode) {
-        const sessionSnapshot = {
-          ...prev,
-          flyModeSessionSnapshot: null, // Don't include nested snapshots
-          canUndoFlySession: false
-        };
-        
         // Start the animated filling on the next tick
         setTimeout(() => {
           startAnimatedFlyMode();
         }, 10);
-        
-        return {
-          ...prev,
-          flyMode: newFlyMode,
-          flyModeSessionSnapshot: sessionSnapshot,
-          canUndoFlySession: false // Will be set to true when session completes
-        };
       }
       
       return {
