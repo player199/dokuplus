@@ -1,72 +1,52 @@
-# Cosmic Sudoku
+# doku+ — The Sudoku That Flies ✈️
 
-A space-themed Sudoku game built with React and TypeScript.
+A fast, beautiful, mobile-first sudoku built around one twist: **FLY mode**.
+
+Do the thinking — prune candidates with notes — then hit **FLY** and watch a
+little plane sweep the board, auto-landing every cell your logic has already
+solved, faster and faster. You fly the strategy; doku+ handles the busywork.
+
+**Play it:** https://dokuplus.vercel.app
 
 ## Features
 
-- Classic Sudoku gameplay with a cosmic space theme
-- Clean, responsive UI design
-- Notes and candidates system for solving strategies
-- Automated candidates feature
-- Keyboard navigation support
-- Conflict detection
-- Game completion detection and celebration
+- ✈️ **FLY mode** — auto-fills every forced cell with an accelerating cascade animation
+- 🗓️ **Daily Flight** — one shared seeded puzzle per day, same board for everyone
+- ♾️ **Infinite puzzles** — generated on device with a guaranteed unique solution
+- 🎚️ **Four difficulties** — Easy, Medium, Hard, Expert
+- 📝 **Notes & smart notes** — pencil marks, one-tap auto-candidates, peer cleanup on placement
+- ⏱️ **Timer, pause, mistake limit, hints, unlimited undo**
+- 📊 **Stats** — best times, win counts, and streaks per difficulty
+- 💾 **Auto-save** — close the tab mid-game and resume exactly where you left off
+- 🌗 **Dark & light themes**, system-font typography, haptic feedback
+- 📱 **Mobile-first PWA** — installable, safe-area aware, big touch targets, keyboard support on desktop
 
-## Technologies Used
+## Tech
 
-- React
-- TypeScript
-- CSS
-- Vite
+React 19 + TypeScript + Vite. No runtime dependencies beyond React.
 
-## Project Structure
+- `src/core/sudoku.ts` — engine: bitmask solver, unique-solution generator, seeded daily RNG
+- `src/core/storage.ts` — settings, stats, and saved-game persistence (localStorage)
+- `src/game/useGame.ts` — game state reducer, FLY loop, clock, auto-save
+- `src/components/` — Home, Game, Board, Controls, Settings
 
-```
-src/
-├── components/       # UI components
-│   ├── Game.tsx         # Main game component
-│   ├── SudokuBoard.tsx  # Board component
-│   ├── SudokuCell.tsx   # Cell component
-│   ├── NumberPad.tsx    # Number input component
-│   └── *.css            # Component styles
-├── hooks/            # Custom React hooks
-│   └── useSudokuGame.ts # Game logic and state management
-├── utils/            # Utility functions
-│   └── sudokuUtils.ts   # Sudoku-specific functions
-├── assets/           # Static assets
-├── App.tsx           # Root component
-└── main.tsx          # Entry point
+## Development
+
+```bash
+npm install
+npm run dev      # local dev server
+npm run build    # type-check + production build
+npm run lint
 ```
 
-## Getting Started
+## How FLY mode works
 
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Start the development server:
-   ```
-   npm run dev
-   ```
-4. Open your browser and navigate to `http://localhost:5173`
-
-## Game Instructions
-
-1. Click on a cell to select it
-2. Click a number in the number pad or press a number key (1-9) to enter a number
-3. Use the "Notes" mode to mark potential numbers in cells
-4. Use "Candidates" to automatically calculate and fill in all possible candidates
-5. Use arrow keys for keyboard navigation
-6. Press Delete or Backspace to clear a cell
+Every empty cell has a set of effective candidates: your pencil marks if you
+made any, otherwise the computed candidates. When a cell has exactly one valid
+candidate, it's a *forced* cell. FLY repeatedly finds the next forced cell,
+flies the plane there, and fills it — each landing can unlock new forced
+cells, so a well-pruned board cascades all the way to the end.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT — see [LICENSE](LICENSE).
