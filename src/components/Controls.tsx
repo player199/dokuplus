@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ControlsProps {
   digitCounts: number[];
   notesMode: boolean;
   canUndo: boolean;
   flying: boolean;
+  canFly: boolean;
+  flyNudge: number; // bumps each time FLY is pressed with nothing to land
   disabled: boolean;
   onDigit: (n: number) => void;
   onErase: () => void;
@@ -12,7 +14,7 @@ interface ControlsProps {
   onToggleNotes: () => void;
   onAutoNotes: () => void;
   onHint: () => void;
-  onToggleFly: () => void;
+  onFly: () => void;
 }
 
 const ToolButton: React.FC<{
@@ -39,6 +41,8 @@ const Controls: React.FC<ControlsProps> = ({
   notesMode,
   canUndo,
   flying,
+  canFly,
+  flyNudge,
   disabled,
   onDigit,
   onErase,
@@ -46,8 +50,30 @@ const Controls: React.FC<ControlsProps> = ({
   onToggleNotes,
   onAutoNotes,
   onHint,
-  onToggleFly,
+  onFly,
 }) => {
+  // Replay a short shake whenever FLY is pressed with nothing to land.
+  const [shake, setShake] = useState(false);
+  useEffect(() => {
+    if (!flyNudge) return;
+    setShake(true);
+    const t = setTimeout(() => setShake(false), 460);
+    return () => clearTimeout(t);
+  }, [flyNudge]);
+
+  const flyClass =
+    'fly-btn' +
+    (flying ? ' fly-btn--active' : '') +
+    (!flying && canFly ? ' fly-btn--armed' : '') +
+    (!flying && !canFly ? ' fly-btn--idle' : '') +
+    (shake ? ' fly-btn--nudge' : '');
+
+  const flyCaption = flying
+    ? 'tap to abort'
+    : canFly
+    ? 'cleared for takeoff'
+    : 'pencil in candidates first';
+
   return (
     <div className="controls">
       <div className="controls__tools">
@@ -111,20 +137,18 @@ const Controls: React.FC<ControlsProps> = ({
         })}
       </div>
 
-      <button
-        type="button"
-        className={'fly-btn' + (flying ? ' fly-btn--active' : '')}
-        onClick={onToggleFly}
-        disabled={disabled && !flying}
-      >
+      <button type="button" className={flyClass} onClick={onFly} aria-pressed={flying}>
+        <span className="fly-btn__wash" aria-hidden="true" />
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
             fill="currentColor"
             d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"
           />
         </svg>
-        <span>{flying ? 'Landing…' : 'FLY'}</span>
-        <small>{flying ? 'tap to stop' : 'auto-fill solved cells'}</small>
+        <span className="fly-btn__text">
+          <strong>{flying ? 'LANDING' : 'FLY'}</strong>
+          <small>{flyCaption}</small>
+        </span>
       </button>
     </div>
   );

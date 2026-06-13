@@ -51,6 +51,7 @@ type Action =
   | { type: 'RESUME'; payload: SavedGame }
   | { type: 'SELECT'; i: number | null }
   | { type: 'INPUT'; digit: number; settings: Settings }
+  | { type: 'TOGGLE_NOTE'; i: number; digit: number }
   | { type: 'ERASE' }
   | { type: 'TOGGLE_NOTES_MODE' }
   | { type: 'FILL_AUTO_NOTES' }
@@ -181,6 +182,16 @@ const reducer = (state: GameState, action: Action): GameState => {
 
       const history = pushHistory(state);
       return { ...placeDigit(state, i, action.digit, action.settings, true), history };
+    }
+
+    case 'TOGGLE_NOTE': {
+      // Direct pencil-mark toggle by tapping a candidate inside a cell (desktop).
+      if (state.status !== 'playing' || state.flying) return state;
+      const { i, digit } = action;
+      if (state.puzzle[i] !== 0 || state.values[i] !== 0) return state;
+      const notes = [...state.notes];
+      notes[i] ^= 1 << (digit - 1);
+      return { ...state, notes, selected: i, history: pushHistory(state) };
     }
 
     case 'ERASE': {
@@ -387,6 +398,7 @@ export const useGame = (settings: Settings) => {
     resumeSaved: (saved: SavedGame) => dispatch({ type: 'RESUME', payload: saved }),
     select: (i: number | null) => dispatch({ type: 'SELECT', i }),
     input: (digit: number) => dispatch({ type: 'INPUT', digit, settings: settingsRef.current }),
+    toggleNote: (i: number, digit: number) => dispatch({ type: 'TOGGLE_NOTE', i, digit }),
     erase: () => dispatch({ type: 'ERASE' }),
     toggleNotesMode: () => dispatch({ type: 'TOGGLE_NOTES_MODE' }),
     fillAutoNotes: () => dispatch({ type: 'FILL_AUTO_NOTES' }),
@@ -400,7 +412,12 @@ export const useGame = (settings: Settings) => {
     toggleFly,
   };
 
-  return { state, actions };
+  // Whether FLY has at least one forced cell to land right now — drives the
+  // "armed" state of the FLY button so the player always knows if it'll do
+  // anything before pressing it.
+  const canFly = state.status === 'playing' && !state.flying && findFlyMove(state) !== null;
+
+  return { state, actions, canFly };
 };
 
 export type GameActions = ReturnType<typeof useGame>['actions'];

@@ -1,6 +1,8 @@
 import React from 'react';
 import { boxOf, colOf, rowOf } from '../core/sudoku';
 
+const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
 interface CellProps {
   i: number;
   value: number;
@@ -12,7 +14,9 @@ interface CellProps {
   isLanded: boolean;
   notesMask: number;
   highlightDigit: number;
+  noteEditable: boolean; // desktop: tap a candidate inside the cell to toggle it
   onSelect: (i: number) => void;
+  onToggleNote: (i: number, digit: number) => void;
 }
 
 const Cell = React.memo(function Cell({
@@ -26,7 +30,9 @@ const Cell = React.memo(function Cell({
   isLanded,
   notesMask,
   highlightDigit,
+  noteEditable,
   onSelect,
+  onToggleNote,
 }: CellProps) {
   const classes = ['cell'];
   if (isSelected) classes.push('cell--selected');
@@ -38,18 +44,42 @@ const Cell = React.memo(function Cell({
   if (colOf(i) % 3 === 2 && colOf(i) !== 8) classes.push('cell--box-right');
   if (rowOf(i) % 3 === 2 && rowOf(i) !== 8) classes.push('cell--box-bottom');
 
+  // The selected empty cell on desktop becomes a 3x3 grid of toggle targets.
+  const editing = noteEditable && isSelected && !isGiven && value === 0;
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={-1}
       className={classes.join(' ')}
       onClick={() => onSelect(i)}
       aria-label={`Row ${rowOf(i) + 1}, column ${colOf(i) + 1}${value ? `, ${value}` : ', empty'}`}
     >
       {value !== 0 ? (
         <span className="cell__value">{value}</span>
+      ) : editing ? (
+        <span className="cell__notes cell__notes--edit">
+          {DIGITS.map((n) => {
+            const on = (notesMask & (1 << (n - 1))) !== 0;
+            return (
+              <button
+                key={n}
+                type="button"
+                className={'cell__note-btn' + (on ? ' is-on' : '')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleNote(i, n);
+                }}
+                aria-label={`${on ? 'Remove' : 'Add'} candidate ${n}`}
+              >
+                {n}
+              </button>
+            );
+          })}
+        </span>
       ) : notesMask !== 0 ? (
         <span className="cell__notes">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          {DIGITS.map((n) => (
             <span
               key={n}
               className={
@@ -63,7 +93,7 @@ const Cell = React.memo(function Cell({
           ))}
         </span>
       ) : null}
-    </button>
+    </div>
   );
 });
 
@@ -78,7 +108,9 @@ interface BoardProps {
   flyTarget: number | null;
   lastPlaced: number | null;
   paused: boolean;
+  noteEditable: boolean;
   onSelect: (i: number) => void;
+  onToggleNote: (i: number, digit: number) => void;
 }
 
 const Board: React.FC<BoardProps> = ({
@@ -92,7 +124,9 @@ const Board: React.FC<BoardProps> = ({
   flyTarget,
   lastPlaced,
   paused,
+  noteEditable,
   onSelect,
+  onToggleNote,
 }) => {
   const selectedValue = selected !== null ? values[selected] : 0;
   const selRow = selected !== null ? rowOf(selected) : -1;
@@ -133,12 +167,22 @@ const Board: React.FC<BoardProps> = ({
             isLanded={!paused && lastPlaced === i}
             notesMask={paused ? 0 : notes[i]}
             highlightDigit={highlightSame ? selectedValue : 0}
+            noteEditable={!paused && noteEditable}
             onSelect={onSelect}
+            onToggleNote={onToggleNote}
           />
         ))}
       </div>
+
+      {/* HUD registration brackets — the signature flight-deck framing. */}
+      <span className="board__bracket board__bracket--tl" aria-hidden="true" />
+      <span className="board__bracket board__bracket--tr" aria-hidden="true" />
+      <span className="board__bracket board__bracket--bl" aria-hidden="true" />
+      <span className="board__bracket board__bracket--br" aria-hidden="true" />
+
       {flying && planeStyle && (
         <div className="board__plane" style={planeStyle}>
+          <span className="board__contrail" aria-hidden="true" />
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="currentColor"
@@ -152,6 +196,7 @@ const Board: React.FC<BoardProps> = ({
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M8 5h3v14H8zm5 0h3v14h-3z" />
           </svg>
+          <span className="board__pause-label">Paused · tap to resume</span>
         </div>
       )}
     </div>

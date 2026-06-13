@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Board from './Board';
 import Controls from './Controls';
 import { GameActions, GameState, MISTAKE_LIMIT } from '../game/useGame';
@@ -10,6 +10,8 @@ interface GameScreenProps {
   game: GameState;
   actions: GameActions;
   settings: Settings;
+  canFly: boolean;
+  noteEditable: boolean;
   isNewBest: boolean;
   onHome: () => void;
   onNewGame: () => void;
@@ -20,11 +22,31 @@ const GameScreen: React.FC<GameScreenProps> = ({
   game,
   actions,
   settings,
+  canFly,
+  noteEditable,
   isNewBest,
   onHome,
   onNewGame,
   onRetry,
 }) => {
+  // Counts up each time FLY is pressed with nothing to land, so the button can
+  // shake and explain itself instead of silently doing nothing.
+  const [flyNudge, setFlyNudge] = useState(0);
+
+  const handleFly = useCallback(() => {
+    if (!game.flying && !canFly) {
+      setFlyNudge((n) => n + 1);
+      if (settings.hapticFeedback && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate([12, 40, 12]);
+        } catch {
+          // not supported
+        }
+      }
+      return;
+    }
+    actions.toggleFly();
+  }, [game.flying, canFly, actions, settings.hapticFeedback]);
   const givens = useMemo(() => game.puzzle.map((v) => v !== 0), [game.puzzle]);
 
   const errors = useMemo(() => {
@@ -59,7 +81,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       } else if (e.key === 'z' || e.key === 'Z' || e.key === 'u' || e.key === 'U') {
         actions.undo();
       } else if (e.key === 'f' || e.key === 'F') {
-        actions.toggleFly();
+        handleFly();
       } else if (e.key === 'Escape') {
         actions.select(null);
       } else if (e.key.startsWith('Arrow')) {
@@ -76,7 +98,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [actions, game.selected, game.status]);
+  }, [actions, game.selected, game.status, handleFly]);
 
   const difficultyLabel = DIFFICULTY_LABELS[game.difficulty];
   const finished = game.status === 'won' || game.status === 'lost';
@@ -130,6 +152,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         flyTarget={game.flyTarget}
         lastPlaced={game.lastPlaced}
         paused={game.status === 'paused'}
+        noteEditable={noteEditable}
         onSelect={(i) => {
           if (game.status === 'paused') {
             actions.resumePlay();
@@ -137,6 +160,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           }
           actions.select(i);
         }}
+        onToggleNote={actions.toggleNote}
       />
 
       <Controls
@@ -144,6 +168,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
         notesMode={game.notesMode}
         canUndo={game.history.length > 0}
         flying={game.flying}
+        canFly={canFly}
+        flyNudge={flyNudge}
         disabled={game.status !== 'playing' || game.flying}
         onDigit={actions.input}
         onErase={actions.erase}
@@ -151,7 +177,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         onToggleNotes={actions.toggleNotesMode}
         onAutoNotes={actions.fillAutoNotes}
         onHint={actions.hint}
-        onToggleFly={actions.toggleFly}
+        onFly={handleFly}
       />
 
       {game.status === 'paused' && (

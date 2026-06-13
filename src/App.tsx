@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import HomeScreen from './components/HomeScreen';
 import GameScreen from './components/GameScreen';
 import SettingsSheet from './components/SettingsSheet';
@@ -29,12 +29,38 @@ function App() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [stats, setStats] = useState<Stats>(loadStats);
   const [saved, setSaved] = useState<SavedGame | null>(loadGame);
-  const [screen, setScreen] = useState<Screen>('home');
+  // The puzzle is the landing page — start straight on the board.
+  const [screen, setScreen] = useState<Screen>('game');
   const [showSettings, setShowSettings] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isNewBest, setIsNewBest] = useState(false);
 
-  const { state: game, actions } = useGame(settings);
+  const { state: game, actions, canFly } = useGame(settings);
+
+  // Tapping individual candidates inside a cell is a precision interaction —
+  // enable it only where there's a real pointer (desktop), not on touch.
+  const noteEditable = useMemo(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches,
+    []
+  );
+
+  // Bootstrap the landing puzzle once: resume a saved game, otherwise deal a
+  // fresh medium board so there's always something to play immediately.
+  const booted = useRef(false);
+  useEffect(() => {
+    if (booted.current) return;
+    booted.current = true;
+    if (saved) {
+      actions.resumeSaved(saved);
+      actions.resumePlay();
+    } else {
+      const { puzzle, solution } = generatePuzzle('medium', Math.random);
+      actions.newGame({ puzzle, solution, difficulty: 'medium', dailyDate: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Apply theme to the document and the browser chrome.
   useEffect(() => {
@@ -166,6 +192,8 @@ function App() {
           game={game}
           actions={actions}
           settings={settings}
+          canFly={canFly}
+          noteEditable={noteEditable}
           isNewBest={isNewBest}
           onHome={goHome}
           onNewGame={() => startGame(game.difficulty === 'daily' ? 'medium' : game.difficulty)}
