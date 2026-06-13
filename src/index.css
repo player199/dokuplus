@@ -580,10 +580,14 @@ p {
 
 /* -------------------------------- Board --------------------------------- */
 
-/* Fills remaining height and centers the board+controls block.
-   board-stage takes flex:1 so it absorbs leftover space; controls stays
-   naturally sized. justify-content:center in game-body splits the leftover
-   space equally above and below the whole group on very tall screens. */
+/* Fills the height left under the header and centers the board+controls group.
+   container-type: size makes game-body a query container with a definite size
+   (its height comes from flex:1, its width from the stretched column) WITHOUT
+   relying on dvh — which is unreliable in the iOS WKWebView. The board sizes
+   itself against this container (see .board). justify-content:center splits the
+   leftover space equally above and below the group; the controls' own
+   margin-top is the only gap between board and numpad, so they read as one
+   attached unit. */
 .game-body {
   flex: 1;
   min-height: 0;
@@ -591,25 +595,27 @@ p {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
+  container-type: size;
   overflow: visible;
 }
 
-/* Shrinks to wrap the board — stage is exactly as tall as the board is wide.
-   container-type: inline-size gives the board a reliable cqw.
-   overflow: visible keeps HUD corner brackets unclipped. */
+/* Wraps the board (no growth) and keeps HUD corner brackets unclipped. */
 .board-stage {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 0;
-  container-type: inline-size;
   overflow: visible;
 }
 
+/* The board is the largest square that fits BOTH the available width and the
+   height remaining after the controls. --controls-reserve is a deliberately
+   slightly-generous estimate of the controls' height (incl. their margin-top);
+   being generous only shrinks the board a few px on the smallest phones and
+   guarantees the FLY button can never be pushed off-screen. */
 .board {
   position: relative;
-  width: 100cqw;
+  width: min(100cqw, calc(100cqh - var(--controls-reserve, 290px)));
   min-width: 240px;
   margin: 0 auto;
 }
@@ -1007,6 +1013,11 @@ p {
 
 /* Desktop (mouse): single 9-in-a-row strip; inline erase hidden, tools erase visible. */
 @media (hover: hover) and (pointer: fine) {
+  /* Desktop controls are a single shorter row, so reserve less height. */
+  .game-body {
+    --controls-reserve: 220px;
+  }
+
   .controls__digits {
     grid-template-columns: repeat(9, 1fr);
     gap: 6px;
@@ -1715,6 +1726,11 @@ p {
 /* --------------------------- Small screens etc -------------------------- */
 
 @media (max-height: 760px) {
+  /* Controls are shorter here, so the board may reserve less height for them. */
+  .game-body {
+    --controls-reserve: 245px;
+  }
+
   .controls {
     margin-top: 10px;
     gap: 8px;
