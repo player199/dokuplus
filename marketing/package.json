@@ -1,0 +1,37 @@
+{
+  "name": "dokuplus-marketing",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Remotion project that renders doku+ store screenshots, feature graphic, OG image and the hero flight animation.",
+  "scripts": {
+    "studio": "remotion studio",
+    "still:og": "remotion still OG-Image out/og-image.png --image-format=png",
+    "still:feature": "remotion still Feature-Graphic out/play/feature-graphic.png --image-format=png",
+    "ios:1": "remotion still Poster-Hero out/ios/01-hero.png --image-format=png",
+    "ios:2": "remotion still Poster-Fly out/ios/02-fly.png --image-format=png",
+    "ios:3": "remotion still Poster-Daily out/ios/03-daily.png --image-format=png",
+    "ios:4": "remotion still Poster-Themes out/ios/04-themes.png --image-format=png",
+    "ios:5": "remotion still Poster-Clean out/ios/05-clean.png --image-format=png",
+    "android:1": "remotion still Android-Hero out/play/01-hero.png --image-format=png",
+    "android:2": "remotion still Android-Fly out/play/02-fly.png --image-format=png",
+    "android:3": "remotion still Android-Daily out/play/03-daily.png --image-format=png",
+    "android:4": "remotion still Android-Themes out/play/04-themes.png --image-format=png",
+    "android:5": "remotion still Android-Clean out/play/05-clean.png --image-format=png",
+    "video:hero": "remotion render HeroFlight out/hero-flight.mp4",
+    "stills": "npm run still:og && npm run still:feature && npm run ios:1 && npm run ios:2 && npm run ios:3 && npm run ios:4 && npm run ios:5 && npm run android:1 && npm run android:2 && npm run android:3 && npm run android:4 && npm run android:5",
+    "all": "npm run stills && npm run video:hero"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.476",
+    "@remotion/google-fonts": "^4.0.476",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "remotion": "^4.0.476"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}
