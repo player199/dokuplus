@@ -63,8 +63,9 @@ const FlyChip: React.FC<{ u: number; label?: string; caption?: string }> = ({
   </div>
 );
 
-const Headline: React.FC<{ u: number; lines: { t: string; accent?: boolean }[] }> = ({
+const Headline: React.FC<{ u: number; fontSize?: number; lines: { t: string; accent?: boolean }[] }> = ({
   u,
+  fontSize,
   lines,
 }) => (
   <h1
@@ -72,7 +73,7 @@ const Headline: React.FC<{ u: number; lines: { t: string; accent?: boolean }[] }
       margin: 0,
       fontFamily: FONT_UI,
       fontWeight: 700,
-      fontSize: u * 7,
+      fontSize: fontSize ?? u * 7,
       lineHeight: 1.04,
       letterSpacing: -u * 0.12,
       color: FLIGHT_DECK.ink,
@@ -138,7 +139,11 @@ export const Poster: React.FC<{ variant: Variant }> = ({ variant }) => {
   const { width, height } = useVideoConfig();
   const u = width / 100; // layout unit = 1% of width
   const pad = u * 8;
-  const boardSize = width * 0.82;
+  // iPad (2048×2732, ratio ≈0.75) is wider relative to its height than the phone
+  // (1320×2868, ratio ≈0.46). Scale the board down so it fits without overflowing.
+  const isTablet = width / height > 0.6;
+  const boardSize = isTablet ? width * 0.56 : width * 0.82;
+  const headlineSize = isTablet ? u * 5.2 : u * 7;
 
   // Shared flight pose: first 7 cells landed, jet banking over the 8th.
   const landedCount = 7;
@@ -199,6 +204,7 @@ export const Poster: React.FC<{ variant: Variant }> = ({ variant }) => {
                 <Eyebrow size={u * 2}>The Sudoku That Flies</Eyebrow>
                 <Headline
                   u={u}
+                  fontSize={headlineSize}
                   lines={[{ t: 'Prune your' }, { t: 'candidates.' }, { t: 'FLY lands', accent: true }, { t: 'the rest.', accent: true }]}
                 />
               </div>

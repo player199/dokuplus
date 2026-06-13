@@ -18,7 +18,12 @@
     "android:3": "remotion still Android-Daily out/play/03-daily.png --image-format=png",
     "android:4": "remotion still Android-Themes out/play/04-themes.png --image-format=png",
     "android:5": "remotion still Android-Clean out/play/05-clean.png --image-format=png",
-    "stills": "npm run still:og && npm run still:feature && npm run ios:1 && npm run ios:2 && npm run ios:3 && npm run ios:4 && npm run ios:5 && npm run android:1 && npm run android:2 && npm run android:3 && npm run android:4 && npm run android:5",
+    "ipad:1": "remotion still iPad-Hero out/ipad/01-hero.png --image-format=png",
+    "ipad:2": "remotion still iPad-Fly out/ipad/02-fly.png --image-format=png",
+    "ipad:3": "remotion still iPad-Daily out/ipad/03-daily.png --image-format=png",
+    "ipad:4": "remotion still iPad-Themes out/ipad/04-themes.png --image-format=png",
+    "ipad:5": "remotion still iPad-Clean out/ipad/05-clean.png --image-format=png",
+    "stills": "npm run still:og && npm run still:feature && npm run ios:1 && npm run ios:2 && npm run ios:3 && npm run ios:4 && npm run ios:5 && npm run android:1 && npm run android:2 && npm run android:3 && npm run android:4 && npm run android:5 && npm run ipad:1 && npm run ipad:2 && npm run ipad:3 && npm run ipad:4 && npm run ipad:5",
     "all": "npm run stills"
   },
   "dependencies": {

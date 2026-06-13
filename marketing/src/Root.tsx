@@ -19,6 +19,13 @@ export const RemotionRoot: React.FC = () => {
       <Still id="Poster-Themes" component={Poster} width={1320} height={2868} defaultProps={{ variant: 'themes' as const }} />
       <Still id="Poster-Clean" component={Poster} width={1320} height={2868} defaultProps={{ variant: 'clean' as const }} />
 
+      {/* iPad 13" screenshots (2048×2732 portrait — covers 12.9" and 13") */}
+      <Still id="iPad-Hero" component={Poster} width={2048} height={2732} defaultProps={{ variant: 'hero' as const }} />
+      <Still id="iPad-Fly" component={Poster} width={2048} height={2732} defaultProps={{ variant: 'fly' as const }} />
+      <Still id="iPad-Daily" component={Poster} width={2048} height={2732} defaultProps={{ variant: 'daily' as const }} />
+      <Still id="iPad-Themes" component={Poster} width={2048} height={2732} defaultProps={{ variant: 'themes' as const }} />
+      <Still id="iPad-Clean" component={Poster} width={2048} height={2732} defaultProps={{ variant: 'clean' as const }} />
+
       {/* Google Play phone screenshots — identical to iOS. 1320x2868 is ratio
           9:19.5, inside Play's allowed 9:16–9:21, so we reuse the exact layout. */}
       <Still id="Android-Hero" component={Poster} width={1320} height={2868} defaultProps={{ variant: 'hero' as const }} />
