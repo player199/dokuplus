@@ -503,6 +503,7 @@ p {
   justify-content: space-between;
   gap: 8px;
   padding: 6px 0 12px;
+  flex-shrink: 0;
 }
 
 .game-header__info {
@@ -573,9 +574,9 @@ p {
 
 /* -------------------------------- Board --------------------------------- */
 
-/* Holds the board centered in the space between header and controls. The board
-   itself is sized square by its grid; --board-chrome is roughly the vertical
-   space taken by the header + control deck so the board never overflows. */
+/* Holds the board centered in the space between header and controls.
+   container-type: size lets the board child use cqw/cqh to size itself
+   to the actual available space — no dvh math needed. */
 .board-stage {
   flex: 1;
   min-height: 0;
@@ -583,11 +584,12 @@ p {
   align-items: center;
   justify-content: center;
   padding: 4px 0;
+  container-type: size;
 }
 
 .board {
   position: relative;
-  width: min(100%, calc(100dvh - var(--board-chrome, 470px)));
+  width: min(100cqw, 100cqh);
   min-width: 240px;
   margin: 0 auto;
 }
@@ -867,6 +869,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .controls__tools {
@@ -978,10 +981,6 @@ p {
 
   .digit__num {
     font-size: 22px;
-  }
-
-  .board {
-    --board-chrome: 330px;
   }
 }
 
