@@ -167,11 +167,13 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ settings, onChange, onClo
             />
           </div>
         </section>
+      </div>
 
+      <footer className="settings-footer">
         <button type="button" className="btn btn--primary settings-done" onClick={onClose}>
           Done
         </button>
-      </div>
+      </footer>
     </div>
   );
 };
