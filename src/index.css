@@ -140,10 +140,17 @@ p {
   overflow: hidden;
 }
 
+/* Pin the shell to the real viewport with position: fixed + inset: 0.
+   A fixed box is sized against the viewport itself, so it always fills the
+   screen exactly — unlike height: 100%, which on iOS WKWebView resolves
+   shorter than the screen and leaves dead space. inset: 0 + margin-inline:
+   auto + max-width keeps it centered on wide screens. All safe-area spacing
+   lives in the padding below (Capacitor's contentInset is 'never'). */
 .app {
+  position: fixed;
+  inset: 0;
   max-width: 520px;
-  margin: 0 auto;
-  height: 100%;
+  margin-inline: auto;
   padding: calc(env(safe-area-inset-top, 0px) + 8px) calc(env(safe-area-inset-right, 0px) + 14px)
     calc(env(safe-area-inset-bottom, 0px) + 14px) calc(env(safe-area-inset-left, 0px) + 14px);
   display: flex;

@@ -6,7 +6,10 @@ const config = {
   appName: 'doku+',
   webDir: 'dist',
   backgroundColor: '#060a12',
-  ios: { contentInset: 'always' },
+  // 'never' = the webview spans the full screen and CSS owns all safe-area
+  // spacing via env(safe-area-inset-*). 'always' would inset natively too,
+  // double-counting the bottom inset and leaving dead space. See index.css .app.
+  ios: { contentInset: 'never' },
 };
 
 export default config;
