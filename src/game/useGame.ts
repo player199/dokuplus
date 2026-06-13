@@ -5,8 +5,10 @@ import {
   PEERS,
   candidateMask,
   canPlace,
+  colOf,
   isComplete,
   maskToDigits,
+  rowOf,
 } from '../core/sudoku';
 import { SavedGame, Settings, clearSavedGame, saveGame } from '../core/storage';
 
@@ -350,6 +352,45 @@ const planFlyRoute = (state: GameState): { i: number; digit: number }[] => {
   return route;
 };
 
+// Reorders the same set of forced cells into a smooth spatial tour (greedy
+// nearest-neighbour) so the plane flies a tidy path instead of hopping in solve
+// order. Every cell's digit is fixed regardless of order, so this is just
+// cosmetic. Starts from the cell nearest the top-left.
+const orderScenic = (route: { i: number; digit: number }[]): { i: number; digit: number }[] => {
+  if (route.length <= 2) return route;
+  const cx = (m: { i: number }) => colOf(m.i) + 0.5;
+  const cy = (m: { i: number }) => rowOf(m.i) + 0.5;
+  const remaining = [...route];
+
+  let startIdx = 0;
+  let startBest = Infinity;
+  remaining.forEach((m, idx) => {
+    const d = cx(m) * cx(m) + cy(m) * cy(m);
+    if (d < startBest) {
+      startBest = d;
+      startIdx = idx;
+    }
+  });
+
+  const ordered = [remaining.splice(startIdx, 1)[0]];
+  while (remaining.length > 0) {
+    const last = ordered[ordered.length - 1];
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    remaining.forEach((m, idx) => {
+      const dx = cx(m) - cx(last);
+      const dy = cy(m) - cy(last);
+      const d = dx * dx + dy * dy;
+      if (d < bestDist) {
+        bestDist = d;
+        bestIdx = idx;
+      }
+    });
+    ordered.push(remaining.splice(bestIdx, 1)[0]);
+  }
+  return ordered;
+};
+
 const initialState: GameState = freshState({
   puzzle: new Array(81).fill(0),
   solution: new Array(81).fill(0),
@@ -370,8 +411,9 @@ export const useGame = (settings: Settings) => {
   const startFly = useCallback(() => {
     const s = stateRef.current;
     if (s.flying || s.status !== 'playing') return;
-    const route = planFlyRoute(s);
+    let route = planFlyRoute(s);
     if (route.length === 0) return;
+    if (settingsRef.current.scenicFlight) route = orderScenic(route);
     dispatch({ type: 'FLY_START', route });
   }, []);
 

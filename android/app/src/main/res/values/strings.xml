@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">doku+</string>
+    <string name="title_activity_main">doku+</string>
+    <string name="package_name">app.dokuplus</string>
+    <string name="custom_url_scheme">app.dokuplus</string>
+</resources>

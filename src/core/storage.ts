@@ -13,6 +13,7 @@ export interface Settings {
   highlightSame: boolean; // highlight matching digits
   autoCleanNotes: boolean; // remove digit from peer notes on placement
   hapticFeedback: boolean;
+  scenicFlight: boolean; // plane takes a smooth spatial tour vs. solve order
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   highlightSame: true,
   autoCleanNotes: true,
   hapticFeedback: true,
+  scenicFlight: true,
 };
 
 export interface DifficultyStats {

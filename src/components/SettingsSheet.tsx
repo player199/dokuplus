@@ -131,6 +131,12 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ settings, onChange, onClo
           onToggle={() => set('autoCleanNotes', !settings.autoCleanNotes)}
         />
         <Toggle
+          label="Scenic flight path"
+          description="Plane flies a smooth tour instead of solve order"
+          checked={settings.scenicFlight}
+          onToggle={() => set('scenicFlight', !settings.scenicFlight)}
+        />
+        <Toggle
           label="Haptics"
           description="Vibrate gently on input (supported phones)"
           checked={settings.hapticFeedback}
