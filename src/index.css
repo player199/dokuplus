@@ -569,8 +569,9 @@ p {
 
 /* -------------------------------- Board --------------------------------- */
 
-/* Holds the board centered in the space between header and controls, sizing it
-   to the largest square that fits the leftover area. */
+/* Holds the board centered in the space between header and controls. The board
+   itself is sized square by its grid; --board-chrome is roughly the vertical
+   space taken by the header + control deck so the board never overflows. */
 .board-stage {
   flex: 1;
   min-height: 0;
@@ -582,10 +583,8 @@ p {
 
 .board {
   position: relative;
-  aspect-ratio: 1;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  width: min(100%, calc(100dvh - var(--board-chrome, 470px)));
+  min-width: 240px;
   margin: 0 auto;
 }
 
@@ -961,7 +960,8 @@ p {
   height: 11px;
 }
 
-/* Desktop (mouse): keep the single 9-in-a-row strip. */
+/* Desktop (mouse): keep the single 9-in-a-row strip, and reclaim the board
+   space the extra dial-pad rows would have used. */
 @media (hover: hover) and (pointer: fine) {
   .controls__digits {
     grid-template-columns: repeat(9, 1fr);
@@ -974,6 +974,10 @@ p {
 
   .digit__num {
     font-size: 22px;
+  }
+
+  .board {
+    --board-chrome: 330px;
   }
 }
 
