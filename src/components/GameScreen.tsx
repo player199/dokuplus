@@ -5,6 +5,7 @@ import { GameActions, GameState, MISTAKE_LIMIT } from '../game/useGame';
 import { DIFFICULTY_LABELS, digitCounts } from '../core/sudoku';
 import { Settings } from '../core/storage';
 import { formatTime } from '../core/format';
+import { hapticLight, hapticSuccess, hapticWarning } from '../core/haptics';
 
 interface GameScreenProps {
   game: GameState;
@@ -36,13 +37,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const handleFly = useCallback(() => {
     if (!game.flying && !canFly) {
       setFlyNudge((n) => n + 1);
-      if (settings.hapticFeedback && 'vibrate' in navigator) {
-        try {
-          navigator.vibrate([12, 40, 12]);
-        } catch {
-          // not supported
-        }
-      }
+      if (settings.hapticFeedback) hapticWarning();
       return;
     }
     actions.toggleFly();
@@ -56,15 +51,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   const counts = useMemo(() => digitCounts(game.values), [game.values]);
 
-  // Light haptic tick on each placement.
+  // Light haptic tick on each cell placement.
   useEffect(() => {
-    if (game.lastPlaced !== null && settings.hapticFeedback && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(8);
-      } catch {
-        // not supported
-      }
-    }
+    if (game.lastPlaced !== null && settings.hapticFeedback) hapticLight();
   }, [game.lastPlaced, settings.hapticFeedback]);
 
   // Keyboard support for desktop players.
@@ -113,6 +102,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
     setShowWin(false);
   }, [game.status, game.flying]);
+
+  // Success haptic fires when the win card appears.
+  useEffect(() => {
+    if (showWin && settings.hapticFeedback) hapticSuccess();
+  }, [showWin, settings.hapticFeedback]);
 
   return (
     <div className="screen game-screen">
@@ -247,6 +241,20 @@ const GameScreen: React.FC<GameScreenProps> = ({
             <button type="button" className="btn btn--primary" onClick={onNewGame}>
               New Game
             </button>
+            {typeof navigator.share === 'function' && (
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() =>
+                  navigator.share({
+                    text: `Landed a ${difficultyLabel} puzzle in ${formatTime(game.time)} on doku+ 🛬`,
+                    url: 'https://dokuplus.vercel.app',
+                  }).catch(() => {})
+                }
+              >
+                Share result
+              </button>
+            )}
             <button type="button" className="btn btn--ghost" onClick={onHome}>
               Home
             </button>

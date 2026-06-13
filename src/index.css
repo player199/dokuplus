@@ -1327,6 +1327,84 @@ p {
   color: var(--ink-dim);
 }
 
+/* ----------------------------- Onboarding ------------------------------- */
+
+.onboarding__card {
+  text-align: left;
+  gap: 16px;
+}
+
+.onboarding__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding__brand-plane {
+  width: 28px;
+  height: 28px;
+  color: var(--amber);
+  flex-shrink: 0;
+}
+
+.onboarding__header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.onboarding__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 2px 0 4px;
+}
+
+.onboarding__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.onboarding__step-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  border: 1px solid var(--hair);
+  display: grid;
+  place-items: center;
+  color: var(--cyan);
+}
+
+.onboarding__step-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.onboarding__step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.onboarding__step-body strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.onboarding__step-body p {
+  font-size: 13px;
+  color: var(--ink-dim);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 .spinner {
   width: 40px;
   height: 40px;

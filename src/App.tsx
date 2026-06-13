@@ -2,6 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import HomeScreen from './components/HomeScreen';
 import GameScreen from './components/GameScreen';
 import SettingsSheet from './components/SettingsSheet';
+import Onboarding from './components/Onboarding';
+import ReviewPrompt from './components/ReviewPrompt';
 import { useGame } from './game/useGame';
 import { dateKey, dateSeed, generatePuzzle, mulberry32 } from './core/sudoku';
 import {
@@ -15,6 +17,7 @@ import {
   saveStats,
 } from './core/storage';
 import { applyTheme, getTheme } from './core/themes';
+import { hasSeenOnboarding, hasBeenPromptedForReview, markReviewPrompted } from './core/meta';
 
 type Screen = 'home' | 'game';
 
@@ -27,6 +30,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isNewBest, setIsNewBest] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
 
   const { state: game, actions, canFly } = useGame(settings);
 
@@ -182,6 +187,13 @@ function App() {
           bestStreak: Math.max(ds.bestStreak, ds.currentStreak + 1),
         },
       };
+      // Ask for a review after the 3rd win, exactly once.
+      const totalWon = next.flight.won + next.daily.won;
+      if (totalWon >= 3 && !hasBeenPromptedForReview()) {
+        markReviewPrompted();
+        setTimeout(() => setShowReviewPrompt(true), 2200);
+      }
+
       if (game.dailyDate) {
         next.lastDailyCompleted = game.dailyDate;
         const yesterday = dateKey(new Date(Date.now() - 86400000));
@@ -236,6 +248,12 @@ function App() {
           onChange={updateSettings}
           onClose={() => setShowSettings(false)}
         />
+      )}
+
+      {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
+
+      {showReviewPrompt && (
+        <ReviewPrompt onDone={() => setShowReviewPrompt(false)} />
       )}
     </div>
   );

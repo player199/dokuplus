@@ -12,6 +12,7 @@
   "dependencies": {
     "@capacitor/app": "8.1.0",
     "@capacitor/core": "8.1.0",
+    "@capacitor/haptics": "^8.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
