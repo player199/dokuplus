@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useReducer, useState } from 'react';
 import { Settings } from '../core/storage';
+import { THEMES, ThemeSpec } from '../core/themes';
+import { isThemeUnlocked, purchaseTheme } from '../core/entitlements';
 
 interface SettingsSheetProps {
   settings: Settings;
@@ -24,9 +26,62 @@ const Toggle: React.FC<{
   </button>
 );
 
+const ThemeCard: React.FC<{
+  theme: ThemeSpec;
+  active: boolean;
+  unlocked: boolean;
+  busy: boolean;
+  onSelect: () => void;
+}> = ({ theme, active, unlocked, busy, onSelect }) => (
+  <button
+    type="button"
+    className={'theme-card' + (active ? ' is-active' : '')}
+    onClick={onSelect}
+    disabled={busy}
+    aria-pressed={active}
+  >
+    <span className="theme-card__swatch" style={{ background: theme.bg }}>
+      <span className="theme-card__dot" style={{ background: theme.cyan }} />
+      <span className="theme-card__dot" style={{ background: theme.amber }} />
+      <span className="theme-card__dot" style={{ background: theme.ink }} />
+      {!unlocked && (
+        <span className="theme-card__lock" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 0 1 6 0v3H9Z"
+            />
+          </svg>
+        </span>
+      )}
+    </span>
+    <span className="theme-card__name">{theme.name}</span>
+    <span className="theme-card__tag">
+      {theme.group === 'free' ? 'Free' : unlocked ? 'Owned' : busy ? '…' : 'Unlock'}
+    </span>
+  </button>
+);
+
 const SettingsSheet: React.FC<SettingsSheetProps> = ({ settings, onChange, onClose }) => {
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     onChange({ ...settings, [key]: value });
+
+  const [, bump] = useReducer((x) => x + 1, 0); // re-render after an unlock
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const pickTheme = async (theme: ThemeSpec) => {
+    if (isThemeUnlocked(theme.id, theme.group)) {
+      set('themeId', theme.id);
+      return;
+    }
+    setBusyId(theme.id);
+    const ok = await purchaseTheme(theme.id);
+    setBusyId(null);
+    if (ok) {
+      bump();
+      set('themeId', theme.id);
+    }
+  };
 
   return (
     <div className="sheet-backdrop" onClick={onClose}>
@@ -34,26 +89,20 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ settings, onChange, onClo
         <div className="sheet__handle" />
         <h2>Settings</h2>
 
-        <div className="setting">
-          <div className="setting__text">
-            <span className="setting__label">Theme</span>
-            <span className="setting__desc">Cockpit dark or daylight</span>
-          </div>
-          <div className="segmented">
-            <button
-              type="button"
-              className={settings.theme === 'dark' ? 'is-active' : ''}
-              onClick={() => set('theme', 'dark')}
-            >
-              Dark
-            </button>
-            <button
-              type="button"
-              className={settings.theme === 'light' ? 'is-active' : ''}
-              onClick={() => set('theme', 'light')}
-            >
-              Light
-            </button>
+        <div className="setting setting--block">
+          <span className="setting__label">Theme</span>
+          <span className="setting__desc">Color packs for the flight deck</span>
+          <div className="theme-grid">
+            {THEMES.map((theme) => (
+              <ThemeCard
+                key={theme.id}
+                theme={theme}
+                active={settings.themeId === theme.id}
+                unlocked={isThemeUnlocked(theme.id, theme.group)}
+                busy={busyId === theme.id}
+                onSelect={() => pickTheme(theme)}
+              />
+            ))}
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import HomeScreen from './components/HomeScreen';
 import GameScreen from './components/GameScreen';
 import SettingsSheet from './components/SettingsSheet';
@@ -14,10 +14,9 @@ import {
   saveSettings,
   saveStats,
 } from './core/storage';
+import { applyTheme, getTheme } from './core/themes';
 
 type Screen = 'home' | 'game';
-
-const THEME_COLORS = { dark: '#0b1220', light: '#eef1f8' };
 
 function App() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
@@ -56,12 +55,13 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Apply theme to the document and the browser chrome.
-  useEffect(() => {
-    document.documentElement.dataset.theme = settings.theme;
+  // Apply the selected theme's palette to the document and browser chrome.
+  useLayoutEffect(() => {
+    const theme = getTheme(settings.themeId);
+    applyTheme(theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', THEME_COLORS[settings.theme]);
-  }, [settings.theme]);
+    if (meta) meta.setAttribute('content', theme.bg);
+  }, [settings.themeId]);
 
   const updateSettings = useCallback((next: Settings) => {
     setSettings(next);

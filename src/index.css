@@ -1284,6 +1284,99 @@ p {
   border-bottom: none;
 }
 
+/* A full-width setting whose control sits beneath the label (theme picker). */
+.setting--block {
+  display: block;
+}
+
+.setting--block .setting__desc {
+  margin-bottom: 12px;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding-bottom: 2px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--hair);
+  background: var(--panel-2);
+  transition: border-color 0.12s ease, transform 0.1s ease;
+}
+
+.theme-card:active {
+  transform: scale(0.97);
+}
+
+.theme-card:disabled {
+  opacity: 0.6;
+}
+
+.theme-card.is-active {
+  border-color: var(--cyan);
+  box-shadow: inset 0 0 0 1px var(--cyan);
+}
+
+.theme-card__swatch {
+  position: relative;
+  height: 46px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.theme-card__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.theme-card__lock {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+}
+
+.theme-card__lock svg {
+  width: 18px;
+  height: 18px;
+}
+
+.theme-card__name {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.theme-card__tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  text-align: center;
+  color: var(--ink-faint);
+}
+
+.theme-card.is-active .theme-card__tag {
+  color: var(--cyan);
+}
+
 .setting__label {
   display: block;
   font-weight: 600;

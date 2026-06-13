@@ -7,7 +7,7 @@ const STATS_KEY = 'dokuplus:stats:v1';
 export type Theme = 'dark' | 'light';
 
 export interface Settings {
-  theme: Theme;
+  themeId: string; // id into the theme registry (see core/themes.ts)
   mistakeLimit: boolean; // end game after 3 mistakes
   showErrors: boolean; // mark wrong entries in red
   highlightSame: boolean; // highlight matching digits
@@ -16,7 +16,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  theme: 'dark',
+  themeId: 'flight-deck',
   mistakeLimit: true,
   showErrors: true,
   highlightSame: true,
@@ -81,10 +81,17 @@ const write = (key: string, value: unknown): void => {
   }
 };
 
-export const loadSettings = (): Settings => ({
-  ...DEFAULT_SETTINGS,
-  ...(read<Partial<Settings>>(SETTINGS_KEY) ?? {}),
-});
+export const loadSettings = (): Settings => {
+  const stored = (read<Partial<Settings> & { theme?: Theme }>(SETTINGS_KEY) ?? {}) as Partial<
+    Settings
+  > & { theme?: Theme };
+  const merged: Settings = { ...DEFAULT_SETTINGS, ...stored };
+  // Migrate the old dark/light setting onto the theme registry.
+  if (!stored.themeId && stored.theme) {
+    merged.themeId = stored.theme === 'light' ? 'daylight' : 'flight-deck';
+  }
+  return merged;
+};
 
 export const saveSettings = (settings: Settings): void => write(SETTINGS_KEY, settings);
 
