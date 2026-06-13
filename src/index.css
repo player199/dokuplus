@@ -569,19 +569,23 @@ p {
 
 /* -------------------------------- Board --------------------------------- */
 
-/* Holds the board centered in the space between header and controls. */
+/* Holds the board centered in the space between header and controls, sizing it
+   to the largest square that fits the leftover area. */
 .board-stage {
   flex: 1;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 4px 0;
 }
 
 .board {
   position: relative;
-  width: min(100%, calc(100dvh - 360px));
-  min-width: 264px;
+  aspect-ratio: 1;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   margin: 0 auto;
 }
 
@@ -906,10 +910,11 @@ p {
   font-weight: 600;
 }
 
+/* 3x3 dial pad — big, thumb-friendly targets. */
 .controls__digits {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
 .digit {
@@ -919,7 +924,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  height: 56px;
+  height: 60px;
   border-radius: var(--radius);
   background: var(--panel);
   border: 1px solid var(--hair);
@@ -938,7 +943,7 @@ p {
 
 .digit__num {
   font-family: var(--font-mono);
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--cyan);
   line-height: 1;
@@ -954,6 +959,22 @@ p {
   color: var(--ink-faint);
   font-family: var(--font-mono);
   height: 11px;
+}
+
+/* Desktop (mouse): keep the single 9-in-a-row strip. */
+@media (hover: hover) and (pointer: fine) {
+  .controls__digits {
+    grid-template-columns: repeat(9, 1fr);
+    gap: 6px;
+  }
+
+  .digit {
+    height: 56px;
+  }
+
+  .digit__num {
+    font-size: 22px;
+  }
 }
 
 /* FLY — the hero / throttle. Notched corner gives it a control-lever identity. */
@@ -1549,14 +1570,14 @@ p {
 
 /* --------------------------- Small screens etc -------------------------- */
 
-@media (max-height: 720px) {
+@media (max-height: 760px) {
   .controls {
     margin-top: 10px;
     gap: 8px;
   }
 
   .digit {
-    height: 48px;
+    height: 52px;
   }
 
   .fly-btn {

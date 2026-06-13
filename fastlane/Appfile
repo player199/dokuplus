@@ -1,0 +1,3 @@
+app_identifier("app.dokuplus")
+# Apple auth in CI is handled by the App Store Connect API key (see Fastfile),
+# so no apple_id / itc credentials are needed here.
