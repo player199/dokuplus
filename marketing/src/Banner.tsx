@@ -31,10 +31,13 @@ export const Banner: React.FC<{ tagline?: boolean }> = ({ tagline = true }) => {
     <AbsoluteFill>
       <Backdrop>
         <AbsoluteFill style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-          {/* left: copy */}
+          {/* left: copy — kept on top and width-capped so the board never
+              overlaps it (the board paints later in the DOM). */}
           <div
             style={{
-              flex: 1,
+              flex: '0 0 52%',
+              position: 'relative',
+              zIndex: 2,
               paddingLeft: u * 7,
               paddingRight: u * 2,
               display: 'flex',
@@ -74,20 +77,21 @@ export const Banner: React.FC<{ tagline?: boolean }> = ({ tagline = true }) => {
                   fontSize: u * 2.4,
                   letterSpacing: u * 0.05,
                   color: FLIGHT_DECK.inkDim,
-                  maxWidth: u * 52,
+                  maxWidth: u * 40,
                 }}
               >
                 Prune your candidates, hit FLY, and watch the board land itself.
               </p>
             )}
           </div>
-          {/* right: board */}
+          {/* right: board — right-aligned so it stays in its own half */}
           <div
             style={{
-              flex: 1,
+              flex: '0 0 48%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-end',
+              paddingRight: u * 4,
               overflow: 'visible',
             }}
           >
