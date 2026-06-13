@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Remotion project that renders doku+ store screenshots, feature graphic, OG image and the hero flight animation.",
+  "description": "Remotion project that renders doku+ store screenshots, feature graphic and OG image.",
   "scripts": {
     "studio": "remotion studio",
     "still:og": "remotion still OG-Image out/og-image.png --image-format=png",
@@ -18,9 +18,8 @@
     "android:3": "remotion still Android-Daily out/play/03-daily.png --image-format=png",
     "android:4": "remotion still Android-Themes out/play/04-themes.png --image-format=png",
     "android:5": "remotion still Android-Clean out/play/05-clean.png --image-format=png",
-    "video:hero": "remotion render HeroFlight out/hero-flight.mp4",
     "stills": "npm run still:og && npm run still:feature && npm run ios:1 && npm run ios:2 && npm run ios:3 && npm run ios:4 && npm run ios:5 && npm run android:1 && npm run android:2 && npm run android:3 && npm run android:4 && npm run android:5",
-    "all": "npm run stills && npm run video:hero"
+    "all": "npm run stills"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.476",

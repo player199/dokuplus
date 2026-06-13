@@ -23,6 +23,8 @@ function buildCells(opts: {
   });
 }
 
+// Full-width FLY bar that anchors the bottom of a poster, echoing the app's
+// primary FLY action button.
 const FlyChip: React.FC<{ u: number; label?: string; caption?: string }> = ({
   u,
   label = 'FLY',
@@ -30,23 +32,33 @@ const FlyChip: React.FC<{ u: number; label?: string; caption?: string }> = ({
 }) => (
   <div
     style={{
-      display: 'inline-flex',
+      width: '100%',
+      display: 'flex',
       alignItems: 'center',
-      gap: u * 1.4,
-      padding: `${u * 1.5}px ${u * 3}px`,
-      borderRadius: u * 2.2,
+      justifyContent: 'center',
+      gap: u * 2.2,
+      padding: `${u * 3.4}px ${u * 4}px`,
+      borderRadius: u * 3,
       background: AMBER_GRAD,
-      boxShadow: `0 ${u}px ${u * 3}px ${FLIGHT_DECK.amberDeep}66, 0 0 ${u * 4}px ${FLIGHT_DECK.amber}55`,
+      boxShadow: `0 ${u * 1.4}px ${u * 4}px ${FLIGHT_DECK.amberDeep}66, 0 0 ${u * 6}px ${FLIGHT_DECK.amber}55`,
     }}
   >
-    <svg viewBox="0 0 24 24" width={u * 4} height={u * 4} style={{ color: '#1a1205' }}>
+    <svg viewBox="0 0 24 24" width={u * 6} height={u * 6} style={{ color: '#1a1205' }}>
       <path fill="currentColor" d={PLANE_PATH} />
     </svg>
     <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
-      <strong style={{ fontFamily: FONT_UI, fontWeight: 700, fontSize: u * 3.4, color: '#160f02' }}>
+      <strong
+        style={{
+          fontFamily: FONT_UI,
+          fontWeight: 700,
+          fontSize: u * 5,
+          letterSpacing: u * 0.2,
+          color: '#160f02',
+        }}
+      >
         {label}
       </strong>
-      <small style={{ fontFamily: FONT_MONO, fontSize: u * 1.5, color: '#3a2a06' }}>{caption}</small>
+      <small style={{ fontFamily: FONT_MONO, fontSize: u * 1.9, color: '#3a2a06' }}>{caption}</small>
     </div>
   </div>
 );

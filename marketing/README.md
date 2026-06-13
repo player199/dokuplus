@@ -6,36 +6,37 @@ palette, the paper-jet logo, Space Grotesk + JetBrains Mono). It's isolated from
 the app — it has its own `package.json` and never touches the Vite/Capacitor
 build.
 
-The signature piece is a sudoku board tilted back in real 3D with the jet
+The signature look is a sudoku board tilted back in real 3D with the jet
 **hovering above the board surface** (CSS `perspective` + `translateZ`, so it
-casts a shadow that glides across the grid), flying a path that lands digits,
-then a phase that recolors the whole scene through all five themes.
+casts a shadow on the grid and reads as genuinely elevated).
 
 ## Render everything
 
 ```bash
 cd marketing
 npm install          # first time only (downloads Remotion + a headless Chromium)
-npm run all          # all stills + the hero video -> ./out
+npm run all          # all stills -> ./out
 ```
 
-Individual targets: `npm run stills`, `npm run video:hero`, `npm run still:og`,
-`npm run still:feature`, `npm run ios:1`…`ios:5`, `npm run android:1`…`android:5`.
-Open the visual editor with `npm run studio`.
+Individual targets: `npm run stills`, `npm run still:og`, `npm run still:feature`,
+`npm run ios:1`…`ios:5`, `npm run android:1`…`android:5`. Open the visual editor
+with `npm run studio`.
 
 Pre-rendered output is committed under [`out/`](./out) so you can grab files
 without installing anything.
 
 ## What gets produced & where each file goes
 
+The iOS and Play screenshots are **identical** — 1320×2868 is ratio 9:19.5,
+which is inside Play's allowed 9:16–9:21 range, so one layout serves both stores.
+
 | File | Size | Drop it into |
 | --- | --- | --- |
 | `out/ios/01-hero … 05-clean.png` | 1320×2868 | **App Store Connect → [app] → Screenshots → iPhone 6.9"**. One 6.9" set covers every iPhone. |
-| `out/play/01-hero … 05-clean.png` | 1080×1920 | **Play Console → Main store listing → Phone screenshots** (need ≥2; we give 5). |
+| `out/play/01-hero … 05-clean.png` | 1320×2868 | **Play Console → Main store listing → Phone screenshots** (need ≥2; we give 5). |
 | `out/play/feature-graphic.png` | 1024×500 | **Play Console → Main store listing → Feature graphic** (required). |
 | `out/icon-1024.png` | 1024×1024 | **App Store Connect → App information → App icon** (no alpha — this PNG has none). |
 | `out/icon-512.png` | 512×512 | **Play Console → Main store listing → App icon**. |
-| `out/hero-flight.mp4` | 1080×1920, 14s | **App Preview** (iOS) / **Promo video** (Play, via a YouTube link) / social. |
 | `public/og-image.png` | 1200×630 | Already wired into the website `<head>` for link previews. |
 
 ## The full store-submission asset checklist
@@ -45,7 +46,6 @@ Beyond the art in this folder, a first submission also needs:
 **Apple App Store**
 - App icon 1024×1024 (✅ `icon-1024.png`)
 - iPhone 6.9" screenshots, 1–10 (✅ 5 provided). iPad screenshots only if you ship iPad.
-- Optional App Preview video, 15–30s, portrait (use/trim `hero-flight.mp4`).
 - Text you write in App Store Connect: name (≤30), subtitle (≤30), promotional
   text, description, keywords (≤100), support URL, privacy policy URL.
 - A privacy "nutrition label" (App Privacy questionnaire).
@@ -69,8 +69,7 @@ Beyond the art in this folder, a first submission also needs:
 - Colors/logo/fonts: `src/theme.ts`, full theme palettes: `src/palettes.ts`.
 - The 3D board + elevated jet: `src/components/Board3D.tsx`, `Plane.tsx`, `Grid.tsx`.
 - Screenshot layouts: `src/Poster.tsx`. Landscape banner (feature + OG): `src/Banner.tsx`.
-- The animation timeline (intro → flight → palette showcase → outro): `src/HeroFlight.tsx`.
-- Board data / flight path: `src/sudoku.ts`.
+- App icon: `src/AppIcon.tsx`. Board data / flight pose: `src/sudoku.ts`, `src/scene.ts`.
 
 > Note on the jet glow: the craft lives inside a `preserve-3d` context, where
 > Chromium clips CSS `filter` output to the element box (a soft glow then shows a
