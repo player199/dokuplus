@@ -22,12 +22,13 @@ const ToolButton: React.FC<{
   label: string;
   active?: boolean;
   disabled?: boolean;
+  extraClass?: string;
   onClick: () => void;
   children: React.ReactNode;
-}> = ({ label, active, disabled, onClick, children }) => (
+}> = ({ label, active, disabled, extraClass, onClick, children }) => (
   <button
     type="button"
-    className={'tool' + (active ? ' tool--active' : '')}
+    className={'tool' + (active ? ' tool--active' : '') + (extraClass ? ' ' + extraClass : '')}
     onClick={onClick}
     disabled={disabled}
     aria-pressed={active}
@@ -87,7 +88,7 @@ const Controls: React.FC<ControlsProps> = ({
             />
           </svg>
         </ToolButton>
-        <ToolButton label="Erase" onClick={onErase} disabled={disabled}>
+        <ToolButton label="Erase" onClick={onErase} disabled={disabled} extraClass="tool--erase-desktop">
           <svg viewBox="0 0 24 24">
             <path
               fill="currentColor"
@@ -137,6 +138,21 @@ const Controls: React.FC<ControlsProps> = ({
             </button>
           );
         })}
+        {/* Erase lives in the digit grid on mobile (2×5 layout), hidden on desktop */}
+        <button
+          type="button"
+          className="digit digit--erase"
+          onClick={onErase}
+          disabled={disabled}
+          aria-label="Erase"
+        >
+          <svg viewBox="0 0 24 24" className="digit__erase-icon">
+            <path
+              fill="currentColor"
+              d="m16.24 3.56 4.2 4.2a2 2 0 0 1 0 2.83l-9.6 9.6H21v2H7.03l-3.27-3.26a2 2 0 0 1 0-2.83L13.4 3.56a2 2 0 0 1 2.83 0ZM5.17 17.5l2.93 2.93 3.32-3.32-4.2-4.2-2.05 2.05a.5.5 0 0 0 0 .7Z"
+            />
+          </svg>
+        </button>
       </div>
 
       <button type="button" className={flyClass} onClick={onFly} aria-pressed={flying}>

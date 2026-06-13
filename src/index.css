@@ -884,7 +884,7 @@ p {
 
 .controls__tools {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
@@ -926,11 +926,16 @@ p {
   font-weight: 600;
 }
 
-/* 3x3 dial pad — big, thumb-friendly targets. */
+/* Mobile: 2-row numpad — 1-5 on top, 6-9+erase on bottom. */
 .controls__digits {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
+}
+
+/* Hide the tools-row Erase on mobile; the digit grid has one. */
+.tool--erase-desktop {
+  display: none;
 }
 
 .digit {
@@ -977,12 +982,33 @@ p {
   height: 11px;
 }
 
-/* Desktop (mouse): keep the single 9-in-a-row strip, and reclaim the board
-   space the extra dial-pad rows would have used. */
+.digit--erase .digit__erase-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--ink-dim);
+}
+
+.digit--erase:active .digit__erase-icon {
+  color: var(--ink);
+}
+
+/* Desktop (mouse): single 9-in-a-row strip; inline erase hidden, tools erase visible. */
 @media (hover: hover) and (pointer: fine) {
   .controls__digits {
     grid-template-columns: repeat(9, 1fr);
     gap: 6px;
+  }
+
+  .digit--erase {
+    display: none;
+  }
+
+  .tool--erase-desktop {
+    display: flex;
+  }
+
+  .controls__tools {
+    grid-template-columns: repeat(5, 1fr);
   }
 
   .digit {
