@@ -7,6 +7,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      ios_only:
+        description: 'Only run the iOS job (skip Android, which already works)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -14,6 +19,8 @@ permissions:
 jobs:
   android:
     name: Android → Play internal
+    # Skip when a manual run asks for iOS only.
+    if: ${{ github.event.inputs.ios_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +79,11 @@ jobs:
 
   ios:
     name: iOS → TestFlight
-    runs-on: macos-14
+    # Capacitor 8 requires Xcode 26 (Swift 6.2) — its precompiled framework
+    # gates CAPPluginCall.reject() etc. behind a Swift 6.2 feature. Older Xcode
+    # strips those methods and the plugin sources fail to compile. macos-26
+    # ships Xcode 26 by default. See ionic-team/capacitor#8333.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
