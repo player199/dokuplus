@@ -3,7 +3,8 @@ import { AbsoluteFill, useVideoConfig } from 'remotion';
 import { FLIGHT_DECK, FONT_UI, FONT_MONO } from './theme';
 import { Backdrop, Wordmark } from './components/Chrome';
 import { Board3D } from './components/Board3D';
-import { buildHeroCells, HERO_PLANE } from './scene';
+import { buildHeroCells } from './scene';
+import { ROUTE, centerOf } from './sudoku';
 
 // A landscape banner used for the Play "feature graphic" (1024x500) and the
 // website OG/Twitter card (1200x630). Text sits left, the tilted board + jet
@@ -11,7 +12,20 @@ import { buildHeroCells, HERO_PLANE } from './scene';
 export const Banner: React.FC<{ tagline?: boolean }> = ({ tagline = true }) => {
   const { width, height } = useVideoConfig();
   const u = width / 100;
-  const board = height * 1.05;
+  const board = height * 0.9;
+  // Pose the jet over a central cell, lifted high enough that the whole craft
+  // (and its glow) clears the tilted board surface — otherwise the board's far
+  // edge occludes the lower half of the jet in 3D.
+  const at = centerOf(ROUTE[6]); // ~ (row 3, col 5), board centre-right
+  const bannerPlane = {
+    x: at.x,
+    y: at.y,
+    elevation: board * 0.42,
+    bank: 40,
+    size: board * 0.2,
+    contrail: 0.55,
+    glow: 1,
+  };
 
   return (
     <AbsoluteFill>
@@ -77,7 +91,7 @@ export const Banner: React.FC<{ tagline?: boolean }> = ({ tagline = true }) => {
               overflow: 'visible',
             }}
           >
-            <Board3D size={board} cells={buildHeroCells(7)} tilt={52} plane={HERO_PLANE(board)} />
+            <Board3D size={board} cells={buildHeroCells(7)} tilt={52} plane={bannerPlane} />
           </div>
         </AbsoluteFill>
       </Backdrop>

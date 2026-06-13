@@ -1,12 +1,13 @@
 import React from 'react';
-import { AbsoluteFill } from 'remotion';
+import { AbsoluteFill, useVideoConfig } from 'remotion';
 import { FLIGHT_DECK, FONT_UI, PLANE_PATH } from './theme';
 
 // The store app icon. iOS wants a 1024x1024 square with NO transparency and NO
 // rounded corners (Apple masks it). Play wants 512x512. Same artwork, two sizes.
-export const AppIcon: React.FC<{ size?: number }> = () => {
-  // Drawn in a 1024 design space and scaled by the composition dimensions.
-  const S = 1024;
+export const AppIcon: React.FC = () => {
+  // Everything is sized relative to the actual canvas, so the 512 and 1024
+  // icons are identical layouts (not a 1024 layout clipped onto a 512 canvas).
+  const S = useVideoConfig().width;
   return (
     <AbsoluteFill
       style={{
