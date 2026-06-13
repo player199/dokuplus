@@ -92,10 +92,26 @@ jobs:
           npm run build
           npx cap sync ios
 
-      - name: Decode App Store Connect API key
+      - name: Decode signing assets
         run: |
+          # App Store Connect API key (for the TestFlight upload).
           echo "${{ secrets.ASC_KEY_P8_BASE64 }}" | base64 -d > "$RUNNER_TEMP/asc_key.p8"
           echo "ASC_KEY_PATH=$RUNNER_TEMP/asc_key.p8" >> "$GITHUB_ENV"
+
+          # Distribution certificate (.p12) — imported into a keychain by fastlane.
+          echo "${{ secrets.IOS_DIST_CERT_P12_BASE64 }}" | base64 -d > "$RUNNER_TEMP/dist_cert.p12"
+          echo "CERT_P12_PATH=$RUNNER_TEMP/dist_cert.p12" >> "$GITHUB_ENV"
+
+          # App Store provisioning profile — install it where Xcode looks and
+          # read its embedded Name so the build can reference it by specifier.
+          PROFILE="$RUNNER_TEMP/profile.mobileprovision"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}" | base64 -d > "$PROFILE"
+          security cms -D -i "$PROFILE" > "$RUNNER_TEMP/profile.plist"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$RUNNER_TEMP/profile.plist")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$RUNNER_TEMP/profile.plist")
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
 
       - name: Build + upload (fastlane)
         env:
@@ -103,4 +119,7 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_PATH: ${{ env.ASC_KEY_PATH }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CERT_P12_PATH: ${{ env.CERT_P12_PATH }}
+          CERT_P12_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          PROFILE_NAME: ${{ env.PROFILE_NAME }}
         run: bundle exec fastlane ios beta
