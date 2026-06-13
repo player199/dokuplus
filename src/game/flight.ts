@@ -97,12 +97,12 @@ export function animateFlight(o: FlightOptions): () => void {
   const ed = len(entryDir);
   const xd = len(exitDir);
   const entry: Pt = {
-    x: centers[0].x + (entryDir.x / ed) * 0.6,
-    y: centers[0].y + (entryDir.y / ed) * 0.6,
+    x: centers[0].x + (entryDir.x / ed) * 0.42,
+    y: centers[0].y + (entryDir.y / ed) * 0.42,
   };
   const exit: Pt = {
-    x: centers[n - 1].x + (exitDir.x / xd) * 0.6,
-    y: centers[n - 1].y + (exitDir.y / xd) * 0.6,
+    x: centers[n - 1].x + (exitDir.x / xd) * 0.42,
+    y: centers[n - 1].y + (exitDir.y / xd) * 0.42,
   };
   const pts: Pt[] = [entry, ...centers, exit];
   const m = pts.length; // = n + 2
@@ -158,11 +158,12 @@ export function animateFlight(o: FlightOptions): () => void {
       return;
     }
 
-    // Advance at a roughly constant spatial speed that ramps up as the cascade
-    // gains momentum, so it accelerates like a real run of forced moves.
+    // Advance at a roughly constant spatial speed. Momentum builds per cell
+    // landed (absolute), not as a fraction of the route, so a short 2-3 cell
+    // flight stays calm instead of snapping straight to full speed, while a
+    // long cascade still winds up fast over its first several cells.
     const segLen = len(sub(at(seg + 1), at(seg)));
-    const progress = n > 1 ? landed / (n - 1) : 1;
-    const speed = 0.85 + 1.25 * Math.min(1, progress); // board-fractions / sec
+    const speed = Math.min(2, 0.8 + 0.17 * landed); // board-fractions / sec
     s = Math.min(m - 1, s + (speed * dt) / segLen);
 
     raf = requestAnimationFrame(frame);
