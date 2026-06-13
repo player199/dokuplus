@@ -162,7 +162,6 @@ p {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
 }
 
 /* Shared placard label — uppercase, tracked, instrument-panel voice. */
@@ -593,17 +592,19 @@ p {
 }
 
 /* Sizes the board to the available square within the body block.
-   container-type: size lets the board child use cqw/cqh. */
+   container-type: size lets the board child use cqw/cqh.
+   aspect-ratio: 1 gives the container a known height so 100cqh works;
+   overflow: visible stops the HUD bracket highlights from being clipped. */
 .board-stage {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px 0;
   container-type: size;
-  /* Shrink to fit the board's natural square — don't eat controls' space. */
-  flex: 0 1 auto;
-  aspect-ratio: 1;
+  flex: 0 0 auto;
   width: 100%;
+  aspect-ratio: 1;
+  overflow: visible;
 }
 
 .board {
