@@ -4,8 +4,8 @@ Two automated pipelines, both cloud-only (no computer needed):
 
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
-| `.github/workflows/android-release.yml` | every push to `main` | builds a debug APK, attaches it to the rolling **latest** GitHub Release |
-| `.github/workflows/store-release.yml` | push a tag `v*` | builds a **signed AAB → Play internal testing** and an **iOS build → TestFlight** |
+| `.github/workflows/android-release.yml` | every push to `main` | fast web build check (`npm ci && npm run build`) — catches broken JS/TS |
+| `.github/workflows/store-release.yml` | push a tag `v*` or manual dispatch | builds a **signed AAB → Play internal testing** and an **iOS build → TestFlight** |
 
 To ship a store build: `git tag v1.0.0 && git push origin v1.0.0`.
 
