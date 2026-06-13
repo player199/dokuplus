@@ -1,5 +1,5 @@
 import React from 'react';
-import { Composition, Still } from 'remotion';
+import { Still } from 'remotion';
 import { Poster } from './Poster';
 import { Banner } from './Banner';
 import { AppIcon } from './AppIcon';

@@ -153,6 +153,12 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ settings, onChange, onClo
               checked={settings.scenicFlight}
               onToggle={() => set('scenicFlight', !settings.scenicFlight)}
             />
+            <Toggle
+              label="Autopilot"
+              description="Auto-fly any forced cell. Also: hold FLY for 3s"
+              checked={settings.autopilot}
+              onToggle={() => set('autopilot', !settings.autopilot)}
+            />
           </div>
         </section>
 

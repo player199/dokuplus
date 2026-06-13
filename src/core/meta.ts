@@ -5,7 +5,7 @@ const flag = (key: string) => {
   try { return !!localStorage.getItem(key); } catch { return false; }
 };
 const setFlag = (key: string) => {
-  try { localStorage.setItem(key, '1'); } catch {}
+  try { localStorage.setItem(key, '1'); } catch { /* storage unavailable */ }
 };
 
 export const hasSeenOnboarding = (): boolean => flag(ONBOARDING_KEY);

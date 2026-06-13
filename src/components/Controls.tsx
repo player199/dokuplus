@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ControlsProps {
   digitCounts: number[];
@@ -8,6 +8,7 @@ interface ControlsProps {
   flying: boolean;
   canFly: boolean;
   flyNudge: number; // bumps each time FLY is pressed with nothing to land
+  autopilot: boolean; // autopilot engaged — auto-launches FLY when armed
   disabled: boolean;
   onDigit: (n: number) => void;
   onErase: () => void;
@@ -16,7 +17,10 @@ interface ControlsProps {
   onAutoNotes: () => void;
   onHint: () => void;
   onFly: () => void;
+  onToggleAutopilot: () => void;
 }
+
+const AUTOPILOT_HOLD_MS = 3000;
 
 const ToolButton: React.FC<{
   label: string;
@@ -46,6 +50,7 @@ const Controls: React.FC<ControlsProps> = ({
   flying,
   canFly,
   flyNudge,
+  autopilot,
   disabled,
   onDigit,
   onErase,
@@ -54,6 +59,7 @@ const Controls: React.FC<ControlsProps> = ({
   onAutoNotes,
   onHint,
   onFly,
+  onToggleAutopilot,
 }) => {
   // Replay a short shake whenever FLY is pressed with nothing to land.
   const [shake, setShake] = useState(false);
@@ -64,18 +70,60 @@ const Controls: React.FC<ControlsProps> = ({
     return () => clearTimeout(t);
   }, [flyNudge]);
 
+  // Press-and-hold (3s) on FLY toggles autopilot. A tap still flies normally:
+  // the hold timer arms on pointer-down; if it fires we mark longFired so the
+  // trailing click is swallowed, otherwise the click runs the normal tap.
+  const [holding, setHolding] = useState(false);
+  const holdTimer = useRef<number | null>(null);
+  const longFired = useRef(false);
+
+  const clearHoldTimer = () => {
+    if (holdTimer.current !== null) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+  };
+  const startHold = () => {
+    longFired.current = false;
+    setHolding(true);
+    clearHoldTimer();
+    holdTimer.current = window.setTimeout(() => {
+      longFired.current = true;
+      setHolding(false);
+      onToggleAutopilot();
+    }, AUTOPILOT_HOLD_MS);
+  };
+  const endHold = () => {
+    clearHoldTimer();
+    setHolding(false);
+  };
+  useEffect(() => () => clearHoldTimer(), []);
+
+  const handleFlyClick = () => {
+    // Swallow the click that follows a completed long-press.
+    if (longFired.current) {
+      longFired.current = false;
+      return;
+    }
+    onFly();
+  };
+
   const flyClass =
     'fly-btn' +
     (flying ? ' fly-btn--active' : '') +
     (!flying && canFly ? ' fly-btn--armed' : '') +
     (!flying && !canFly ? ' fly-btn--idle' : '') +
+    (autopilot ? ' fly-btn--auto' : '') +
+    (holding ? ' fly-btn--holding' : '') +
     (shake ? ' fly-btn--nudge' : '');
 
   const flyCaption = flying
     ? 'tap to abort'
+    : autopilot
+    ? 'autopilot on · hold to stop'
     : canFly
     ? 'cleared for takeoff'
-    : 'pencil in candidates first';
+    : 'pencil in · hold for autopilot';
 
   return (
     <div className="controls">
@@ -155,8 +203,19 @@ const Controls: React.FC<ControlsProps> = ({
         </button>
       </div>
 
-      <button type="button" className={flyClass} onClick={onFly} aria-pressed={flying}>
+      <button
+        type="button"
+        className={flyClass}
+        onClick={handleFlyClick}
+        onPointerDown={startHold}
+        onPointerUp={endHold}
+        onPointerLeave={endHold}
+        onPointerCancel={endHold}
+        aria-pressed={flying}
+      >
         <span className="fly-btn__wash" aria-hidden="true" />
+        {/* Fills over the 3s hold to signal the autopilot toggle is arming. */}
+        <span className="fly-btn__hold" aria-hidden="true" />
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
             fill="currentColor"
@@ -167,6 +226,11 @@ const Controls: React.FC<ControlsProps> = ({
           <strong>{flying ? 'LANDING' : 'FLY'}</strong>
           <small>{flyCaption}</small>
         </span>
+        {autopilot && (
+          <span className="fly-btn__auto" aria-hidden="true">
+            AUTO
+          </span>
+        )}
       </button>
     </div>
   );

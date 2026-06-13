@@ -14,6 +14,7 @@ export interface Settings {
   autoCleanNotes: boolean; // remove digit from peer notes on placement
   hapticFeedback: boolean;
   scenicFlight: boolean; // plane takes a smooth spatial tour vs. solve order
+  autopilot: boolean; // auto-launch FLY whenever a cell is forced (persists across games)
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoCleanNotes: true,
   hapticFeedback: true,
   scenicFlight: true,
+  autopilot: false,
 };
 
 export interface DifficultyStats {

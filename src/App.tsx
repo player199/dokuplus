@@ -73,6 +73,15 @@ function App() {
     saveSettings(next);
   }, []);
 
+  // Autopilot persists across games — toggled by a 3s hold on FLY (or in Settings).
+  const toggleAutopilot = useCallback(() => {
+    setSettings((prev) => {
+      const next = { ...prev, autopilot: !prev.autopilot };
+      saveSettings(next);
+      return next;
+    });
+  }, []);
+
   const updateStats = useCallback((next: Stats) => {
     setStats(next);
     saveStats(next);
@@ -239,6 +248,7 @@ function App() {
           onHome={goHome}
           onNewGame={startFlight}
           onRetry={retryPuzzle}
+          onToggleAutopilot={toggleAutopilot}
         />
       )}
 

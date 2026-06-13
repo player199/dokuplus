@@ -17,6 +17,7 @@ interface GameScreenProps {
   onHome: () => void;
   onNewGame: () => void;
   onRetry: () => void;
+  onToggleAutopilot: () => void;
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -29,6 +30,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   onHome,
   onNewGame,
   onRetry,
+  onToggleAutopilot,
 }) => {
   // Counts up each time FLY is pressed with nothing to land, so the button can
   // shake and explain itself instead of silently doing nothing.
@@ -42,6 +44,24 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
     actions.toggleFly();
   }, [game.flying, canFly, actions, settings.hapticFeedback]);
+
+  // Toggle autopilot from the 3s hold on FLY, with a confirming haptic.
+  const handleToggleAutopilot = useCallback(() => {
+    if (settings.hapticFeedback) hapticSuccess();
+    onToggleAutopilot();
+  }, [settings.hapticFeedback, onToggleAutopilot]);
+
+  // Autopilot: whenever FLY is armed (a cell is forced) and we're idle, launch
+  // it automatically after a short beat. Once the cascade lands every currently
+  // forced cell, canFly goes false and this rests until the next single appears.
+  useEffect(() => {
+    if (!settings.autopilot) return;
+    if (game.status !== 'playing' || game.flying || !canFly) return;
+    const t = setTimeout(() => actions.toggleFly(), 240);
+    return () => clearTimeout(t);
+    // actions is rebuilt each render; the primitives below are the real triggers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.autopilot, canFly, game.flying, game.status]);
   const givens = useMemo(() => game.puzzle.map((v) => v !== 0), [game.puzzle]);
 
   const errors = useMemo(() => {
@@ -181,6 +201,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           flying={game.flying}
           canFly={canFly}
           flyNudge={flyNudge}
+          autopilot={settings.autopilot}
           disabled={game.status !== 'playing' || game.flying}
           onDigit={actions.input}
           onErase={actions.erase}
@@ -189,6 +210,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           onAutoNotes={actions.toggleAutoNotes}
           onHint={actions.hint}
           onFly={handleFly}
+          onToggleAutopilot={handleToggleAutopilot}
         />
       </div>
 
