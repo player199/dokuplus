@@ -36,6 +36,8 @@ export interface GameState {
   status: GameStatus;
   flying: boolean;
   flyTarget: number | null;
+  flyRoute: { i: number; digit: number }[]; // precomputed cascade for the flight
+  flyIndex: number; // how many of the route have landed
   lastPlaced: number | null;
   history: HistoryEntry[];
 }
@@ -61,8 +63,8 @@ type Action =
   | { type: 'TICK' }
   | { type: 'PAUSE' }
   | { type: 'RESUME_PLAY' }
-  | { type: 'FLY_START' }
-  | { type: 'FLY_STEP'; i: number; digit: number; settings: Settings }
+  | { type: 'FLY_START'; route: { i: number; digit: number }[] }
+  | { type: 'FLY_LAND'; settings: Settings }
   | { type: 'FLY_END' };
 
 const freshState = (payload: NewGamePayload): GameState => ({
@@ -81,6 +83,8 @@ const freshState = (payload: NewGamePayload): GameState => ({
   status: 'playing',
   flying: false,
   flyTarget: null,
+  flyRoute: [],
+  flyIndex: 0,
   lastPlaced: null,
   history: [],
 });
@@ -133,6 +137,8 @@ const placeDigit = (
     lastPlaced: i,
     flying: status === 'playing' ? state.flying : false,
     flyTarget: status === 'playing' ? state.flyTarget : null,
+    flyRoute: status === 'playing' ? state.flyRoute : [],
+    flyIndex: status === 'playing' ? state.flyIndex : 0,
   };
 };
 
@@ -270,35 +276,75 @@ const reducer = (state: GameState, action: Action): GameState => {
       return { ...state, status: 'playing' };
 
     case 'FLY_START':
-      if (state.status !== 'playing') return state;
-      return { ...state, flying: true, notesMode: false };
+      if (state.status !== 'playing' || action.route.length === 0) return state;
+      return {
+        ...state,
+        flying: true,
+        notesMode: false,
+        flyRoute: action.route,
+        flyIndex: 0,
+        flyTarget: null,
+      };
 
-    case 'FLY_STEP': {
+    case 'FLY_LAND': {
       if (!state.flying || state.status !== 'playing') return state;
+      const move = state.flyRoute[state.flyIndex];
+      if (!move) return state;
       const history = pushHistory(state);
-      const next = placeDigit(state, action.i, action.digit, action.settings, true);
-      return { ...next, flyTarget: action.i, history };
+      const next = placeDigit(state, move.i, move.digit, action.settings, true);
+      return { ...next, flyTarget: move.i, flyIndex: state.flyIndex + 1, history };
     }
 
     case 'FLY_END':
-      return { ...state, flying: false, flyTarget: null };
+      return { ...state, flying: false, flyTarget: null, flyRoute: [], flyIndex: 0 };
 
     default:
       return state;
   }
 };
 
-// Finds the next cell FLY can fill: a cell whose notes (or computed
-// candidates when it has no notes) leave exactly one valid digit.
+// A cell FLY can fill: its notes (or computed candidates when it has none)
+// leave exactly one valid digit.
+const forcedMove = (
+  values: Grid,
+  notes: number[],
+  i: number
+): number | null => {
+  const noted = maskToDigits(notes[i]);
+  const options = (noted.length > 0 ? noted : maskToDigits(candidateMask(values, i))).filter((n) =>
+    canPlace(values, i, n)
+  );
+  return options.length === 1 ? options[0] : null;
+};
+
 const findFlyMove = (state: GameState): { i: number; digit: number } | null => {
   for (let i = 0; i < 81; i++) {
     if (state.values[i] !== 0) continue;
-    const noted = maskToDigits(state.notes[i]);
-    const options = (noted.length > 0 ? noted : maskToDigits(candidateMask(state.values, i)))
-      .filter((n) => canPlace(state.values, i, n));
-    if (options.length === 1) return { i, digit: options[0] };
+    const digit = forcedMove(state.values, state.notes, i);
+    if (digit !== null) return { i, digit };
   }
   return null;
+};
+
+// Plays the whole cascade forward to build the flight route up front, so the
+// plane can fly a continuous path and land each cell as it passes over it.
+const planFlyRoute = (state: GameState): { i: number; digit: number }[] => {
+  const values = [...state.values];
+  const route: { i: number; digit: number }[] = [];
+  let progress = true;
+  while (progress) {
+    progress = false;
+    for (let i = 0; i < 81; i++) {
+      if (values[i] !== 0) continue;
+      const digit = forcedMove(values, state.notes, i);
+      if (digit !== null) {
+        route.push({ i, digit });
+        values[i] = digit;
+        progress = true;
+      }
+    }
+  }
+  return route;
 };
 
 const initialState: GameState = freshState({
@@ -315,50 +361,24 @@ export const useGame = (settings: Settings) => {
   stateRef.current = state;
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const flyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const stopFly = useCallback(() => {
-    if (flyTimer.current) {
-      clearTimeout(flyTimer.current);
-      flyTimer.current = null;
-    }
-    if (stateRef.current.flying) dispatch({ type: 'FLY_END' });
-  }, []);
-
-  // FLY mode: cascade-fill every forced cell with accelerating speed.
+  // Launch a flight by planning the full cascade route; the flight controller in
+  // the Board then flies the plane and drives the landings.
   const startFly = useCallback(() => {
     const s = stateRef.current;
     if (s.flying || s.status !== 'playing') return;
-    if (!findFlyMove(s)) return;
+    const route = planFlyRoute(s);
+    if (route.length === 0) return;
+    dispatch({ type: 'FLY_START', route });
+  }, []);
 
-    dispatch({ type: 'FLY_START' });
-    let delay = 420;
-
-    const step = () => {
-      const current = stateRef.current;
-      if (!current.flying || current.status !== 'playing') {
-        stopFly();
-        return;
-      }
-      const move = findFlyMove(current);
-      if (!move) {
-        stopFly();
-        return;
-      }
-      dispatch({ type: 'FLY_STEP', i: move.i, digit: move.digit, settings: settingsRef.current });
-      delay = Math.max(65, delay * 0.86);
-      flyTimer.current = setTimeout(step, delay);
-    };
-
-    flyTimer.current = setTimeout(step, 300);
-  }, [stopFly]);
+  const stopFly = useCallback(() => {
+    if (stateRef.current.flying) dispatch({ type: 'FLY_END' });
+  }, []);
 
   const toggleFly = useCallback(() => {
-    if (stateRef.current.flying) {
-      stopFly();
-    } else {
-      startFly();
-    }
+    if (stateRef.current.flying) stopFly();
+    else startFly();
   }, [startFly, stopFly]);
 
   useEffect(() => stopFly, [stopFly]);
@@ -417,6 +437,8 @@ export const useGame = (settings: Settings) => {
     },
     resumePlay: () => dispatch({ type: 'RESUME_PLAY' }),
     toggleFly,
+    flyLand: () => dispatch({ type: 'FLY_LAND', settings: settingsRef.current }),
+    endFly: () => dispatch({ type: 'FLY_END' }),
   };
 
   // Whether FLY has at least one forced cell to land right now — drives the

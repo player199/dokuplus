@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { boxOf, colOf, rowOf } from '../core/sudoku';
+import { animateFlight } from '../game/flight';
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -105,12 +106,14 @@ interface BoardProps {
   selected: number | null;
   highlightSame: boolean;
   flying: boolean;
-  flyTarget: number | null;
+  flyRoute: { i: number; digit: number }[];
   lastPlaced: number | null;
   paused: boolean;
   noteEditable: boolean;
   onSelect: (i: number) => void;
   onToggleNote: (i: number, digit: number) => void;
+  onFlyLand: () => void;
+  onFlyDone: () => void;
 }
 
 const Board: React.FC<BoardProps> = ({
@@ -121,28 +124,59 @@ const Board: React.FC<BoardProps> = ({
   selected,
   highlightSame,
   flying,
-  flyTarget,
+  flyRoute,
   lastPlaced,
   paused,
   noteEditable,
   onSelect,
   onToggleNote,
+  onFlyLand,
+  onFlyDone,
 }) => {
   const selectedValue = selected !== null ? values[selected] : 0;
   const selRow = selected !== null ? rowOf(selected) : -1;
   const selCol = selected !== null ? colOf(selected) : -1;
   const selBox = selected !== null ? boxOf(selected) : -1;
 
-  const planeStyle: React.CSSProperties | undefined =
-    flying && flyTarget !== null
-      ? {
-          left: `${(colOf(flyTarget) + 0.5) * (100 / 9)}%`,
-          top: `${(rowOf(flyTarget) + 0.5) * (100 / 9)}%`,
-        }
-      : undefined;
+  const boardRef = useRef<HTMLDivElement>(null);
+  const planeRef = useRef<HTMLDivElement>(null);
+  const craftRef = useRef<HTMLDivElement>(null);
+  // Latest values read fresh when a flight starts, without re-running the effect.
+  const routeRef = useRef(flyRoute);
+  routeRef.current = flyRoute;
+  const landRef = useRef(onFlyLand);
+  landRef.current = onFlyLand;
+  const doneRef = useRef(onFlyDone);
+  doneRef.current = onFlyDone;
+
+  // Run the flight controller for the duration of a single flight.
+  useEffect(() => {
+    if (!flying) return;
+    const plane = planeRef.current;
+    const board = boardRef.current;
+    const route = routeRef.current;
+    if (!plane || !board || route.length === 0) return;
+    const rect = board.getBoundingClientRect();
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return animateFlight({
+      plane,
+      craft: craftRef.current,
+      width: rect.width,
+      height: rect.height,
+      centers: route.map(({ i }) => ({ x: (colOf(i) + 0.5) / 9, y: (rowOf(i) + 0.5) / 9 })),
+      reducedMotion: reduced,
+      onLand: () => landRef.current(),
+      onDone: () => doneRef.current(),
+    });
+  }, [flying]);
 
   return (
-    <div className={'board' + (flying ? ' board--flying' : '') + (paused ? ' board--paused' : '')}>
+    <div
+      ref={boardRef}
+      className={'board' + (flying ? ' board--flying' : '') + (paused ? ' board--paused' : '')}
+    >
       <div className="board__grid">
         {values.map((value, i) => (
           <Cell
@@ -180,15 +214,17 @@ const Board: React.FC<BoardProps> = ({
       <span className="board__bracket board__bracket--bl" aria-hidden="true" />
       <span className="board__bracket board__bracket--br" aria-hidden="true" />
 
-      {flying && planeStyle && (
-        <div className="board__plane" style={planeStyle}>
-          <span className="board__contrail" aria-hidden="true" />
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"
-            />
-          </svg>
+      {flying && (
+        <div className="board__plane" ref={planeRef} style={{ opacity: 0 }}>
+          <div className="board__plane-craft" ref={craftRef}>
+            <span className="board__contrail" aria-hidden="true" />
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5Z"
+              />
+            </svg>
+          </div>
         </div>
       )}
       {paused && (

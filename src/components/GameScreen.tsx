@@ -149,7 +149,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         selected={game.selected}
         highlightSame={settings.highlightSame}
         flying={game.flying}
-        flyTarget={game.flyTarget}
+        flyRoute={game.flyRoute}
         lastPlaced={game.lastPlaced}
         paused={game.status === 'paused'}
         noteEditable={noteEditable}
@@ -161,6 +161,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
           actions.select(i);
         }}
         onToggleNote={actions.toggleNote}
+        onFlyLand={actions.flyLand}
+        onFlyDone={actions.endFly}
       />
 
       <Controls
