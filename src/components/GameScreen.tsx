@@ -166,6 +166,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       <Controls
         digitCounts={counts}
         notesMode={game.notesMode}
+        autoActive={game.autoNotes}
         canUndo={game.history.length > 0}
         flying={game.flying}
         canFly={canFly}
@@ -175,7 +176,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         onErase={actions.erase}
         onUndo={actions.undo}
         onToggleNotes={actions.toggleNotesMode}
-        onAutoNotes={actions.fillAutoNotes}
+        onAutoNotes={actions.toggleAutoNotes}
         onHint={actions.hint}
         onFly={handleFly}
       />

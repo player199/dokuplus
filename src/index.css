@@ -203,14 +203,76 @@ p {
   filter: drop-shadow(0 0 7px rgba(53, 225, 255, 0.55));
 }
 
+.home-screen {
+  overflow-y: auto;
+}
+
 .home-tagline {
   color: var(--ink-dim);
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 6px 2px 18px;
-  border-left: 2px solid var(--cyan);
-  padding-left: 12px;
-  margin: 4px 0 2px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  padding: 2px 2px 0;
+  margin: 8px 0 16px;
+}
+
+/* New Flight — the primary departure CTA. Cyan throttle to FLY's amber one. */
+.depart-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 18px;
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  background: var(--cyan-grad);
+  color: #04121c;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%);
+  box-shadow: 0 8px 22px rgba(43, 143, 255, 0.3);
+  transition: transform 0.1s ease;
+}
+
+.depart-btn:active {
+  transform: scale(0.99);
+}
+
+.depart-btn:disabled {
+  opacity: 0.5;
+}
+
+.depart-btn .brand__plane {
+  width: 26px;
+  height: 26px;
+  color: #04121c;
+  filter: none;
+  flex: none;
+}
+
+.depart-btn__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  line-height: 1.15;
+}
+
+.depart-btn__text strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.depart-btn__text small {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.78;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.depart-btn__chev svg {
+  width: 22px;
+  height: 22px;
+  color: #04121c;
+  opacity: 0.65;
 }
 
 .home-cards {
@@ -318,64 +380,6 @@ p {
   flex: 1;
   height: 1px;
   background: var(--hair);
-}
-
-.difficulty-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.diff-btn {
-  position: relative;
-  background: var(--panel);
-  border: 1px solid var(--hair);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  text-align: left;
-  transition: transform 0.1s ease, border-color 0.12s ease;
-}
-
-.diff-btn:active {
-  transform: scale(0.97);
-  border-color: var(--cyan);
-}
-
-.diff-btn__label {
-  display: block;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.diff-btn__label::before {
-  content: '';
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 9px;
-  vertical-align: 1px;
-  transform: rotate(45deg);
-}
-
-.diff-btn--easy .diff-btn__label::before {
-  background: var(--good);
-}
-.diff-btn--medium .diff-btn__label::before {
-  background: var(--cyan);
-}
-.diff-btn--hard .diff-btn__label::before {
-  background: var(--amber);
-}
-.diff-btn--expert .diff-btn__label::before {
-  background: var(--red);
-}
-
-.diff-btn__best {
-  display: block;
-  font-size: 10px;
-  color: var(--ink-faint);
-  margin-top: 5px;
-  font-family: var(--font-mono);
 }
 
 .stats-row {

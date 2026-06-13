@@ -29,6 +29,7 @@ export interface GameState {
   dailyDate: string | null;
   selected: number | null;
   notesMode: boolean;
+  autoNotes: boolean; // all candidates auto-filled (toggle state of the Auto tool)
   mistakes: number;
   hintsUsed: number;
   time: number;
@@ -54,7 +55,7 @@ type Action =
   | { type: 'TOGGLE_NOTE'; i: number; digit: number }
   | { type: 'ERASE' }
   | { type: 'TOGGLE_NOTES_MODE' }
-  | { type: 'FILL_AUTO_NOTES' }
+  | { type: 'TOGGLE_AUTO_NOTES' }
   | { type: 'UNDO' }
   | { type: 'HINT' }
   | { type: 'TICK' }
@@ -73,6 +74,7 @@ const freshState = (payload: NewGamePayload): GameState => ({
   dailyDate: payload.dailyDate,
   selected: null,
   notesMode: false,
+  autoNotes: false,
   mistakes: 0,
   hintsUsed: 0,
   time: 0,
@@ -210,14 +212,19 @@ const reducer = (state: GameState, action: Action): GameState => {
     case 'TOGGLE_NOTES_MODE':
       return { ...state, notesMode: !state.notesMode };
 
-    case 'FILL_AUTO_NOTES': {
+    case 'TOGGLE_AUTO_NOTES': {
       if (state.status !== 'playing' || state.flying) return state;
       const history = pushHistory(state);
+      // On → clear every pencil mark; the Auto tool turns itself off.
+      if (state.autoNotes) {
+        return { ...state, notes: new Array(81).fill(0), autoNotes: false, history };
+      }
+      // Off → fill every empty cell with its current candidates.
       const notes = [...state.notes];
       for (let i = 0; i < 81; i++) {
         if (state.values[i] === 0) notes[i] = candidateMask(state.values, i);
       }
-      return { ...state, notes, history };
+      return { ...state, notes, autoNotes: true, history };
     }
 
     case 'UNDO': {
@@ -297,7 +304,7 @@ const findFlyMove = (state: GameState): { i: number; digit: number } | null => {
 const initialState: GameState = freshState({
   puzzle: new Array(81).fill(0),
   solution: new Array(81).fill(0),
-  difficulty: 'easy',
+  difficulty: 'flight',
   dailyDate: null,
 });
 
@@ -401,7 +408,7 @@ export const useGame = (settings: Settings) => {
     toggleNote: (i: number, digit: number) => dispatch({ type: 'TOGGLE_NOTE', i, digit }),
     erase: () => dispatch({ type: 'ERASE' }),
     toggleNotesMode: () => dispatch({ type: 'TOGGLE_NOTES_MODE' }),
-    fillAutoNotes: () => dispatch({ type: 'FILL_AUTO_NOTES' }),
+    toggleAutoNotes: () => dispatch({ type: 'TOGGLE_AUTO_NOTES' }),
     undo: () => dispatch({ type: 'UNDO' }),
     hint: () => dispatch({ type: 'HINT' }),
     pause: () => {

@@ -47,10 +47,7 @@ const emptyDifficultyStats = (): DifficultyStats => ({
 });
 
 export const emptyStats = (): Stats => ({
-  easy: emptyDifficultyStats(),
-  medium: emptyDifficultyStats(),
-  hard: emptyDifficultyStats(),
-  expert: emptyDifficultyStats(),
+  flight: emptyDifficultyStats(),
   daily: emptyDifficultyStats(),
 });
 
@@ -103,6 +100,10 @@ export const saveStats = (stats: Stats): void => write(STATS_KEY, stats);
 export const loadGame = (): SavedGame | null => {
   const game = read<SavedGame>(GAME_KEY);
   if (!game || !Array.isArray(game.values) || game.values.length !== 81) return null;
+  // Migrate saves from the old difficulty tiers onto the new Flight/Daily model.
+  if (game.difficulty !== 'daily' && game.difficulty !== 'flight') {
+    game.difficulty = game.dailyDate ? 'daily' : 'flight';
+  }
   return game;
 };
 

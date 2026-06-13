@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 interface ControlsProps {
   digitCounts: number[];
   notesMode: boolean;
+  autoActive: boolean;
   canUndo: boolean;
   flying: boolean;
   canFly: boolean;
@@ -39,6 +40,7 @@ const ToolButton: React.FC<{
 const Controls: React.FC<ControlsProps> = ({
   digitCounts,
   notesMode,
+  autoActive,
   canUndo,
   flying,
   canFly,
@@ -101,7 +103,7 @@ const Controls: React.FC<ControlsProps> = ({
             />
           </svg>
         </ToolButton>
-        <ToolButton label="Auto" onClick={onAutoNotes} disabled={disabled}>
+        <ToolButton label="Auto" active={autoActive} onClick={onAutoNotes} disabled={disabled}>
           <svg viewBox="0 0 24 24">
             <path
               fill="currentColor"

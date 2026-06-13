@@ -3,13 +3,7 @@ import HomeScreen from './components/HomeScreen';
 import GameScreen from './components/GameScreen';
 import SettingsSheet from './components/SettingsSheet';
 import { useGame } from './game/useGame';
-import {
-  Difficulty,
-  dateKey,
-  dateSeed,
-  generatePuzzle,
-  mulberry32,
-} from './core/sudoku';
+import { dateKey, dateSeed, generatePuzzle, mulberry32 } from './core/sudoku';
 import {
   SavedGame,
   Settings,
@@ -47,7 +41,7 @@ function App() {
   );
 
   // Bootstrap the landing puzzle once: resume a saved game, otherwise deal a
-  // fresh medium board so there's always something to play immediately.
+  // fresh Flight so there's always something to play immediately.
   const booted = useRef(false);
   useEffect(() => {
     if (booted.current) return;
@@ -56,8 +50,8 @@ function App() {
       actions.resumeSaved(saved);
       actions.resumePlay();
     } else {
-      const { puzzle, solution } = generatePuzzle('medium', Math.random);
-      actions.newGame({ puzzle, solution, difficulty: 'medium', dailyDate: null });
+      const { puzzle, solution } = generatePuzzle(Math.random);
+      actions.newGame({ puzzle, solution, difficulty: 'flight', dailyDate: null });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -79,29 +73,26 @@ function App() {
     saveStats(next);
   }, []);
 
-  const startGame = useCallback(
-    (difficulty: Difficulty, dailyDate: string | null = null) => {
-      setGenerating(true);
-      setIsNewBest(false);
-      // Defer generation a frame so the loading state can paint.
-      setTimeout(() => {
-        const rng = dailyDate ? mulberry32(dateSeed(new Date())) : Math.random;
-        const { puzzle, solution } = generatePuzzle(difficulty, rng);
-        actions.newGame({ puzzle, solution, difficulty, dailyDate });
-        setStats((prev) => {
-          const next: Stats = {
-            ...prev,
-            [difficulty]: { ...prev[difficulty], played: prev[difficulty].played + 1 },
-          };
-          saveStats(next);
-          return next;
-        });
-        setGenerating(false);
-        setScreen('game');
-      }, 60);
-    },
-    [actions]
-  );
+  // Deal a fresh Flight — a puzzle FLY can't finish on its own.
+  const startFlight = useCallback(() => {
+    setGenerating(true);
+    setIsNewBest(false);
+    // Defer generation a frame so the loading state can paint.
+    setTimeout(() => {
+      const { puzzle, solution } = generatePuzzle(Math.random);
+      actions.newGame({ puzzle, solution, difficulty: 'flight', dailyDate: null });
+      setStats((prev) => {
+        const next: Stats = {
+          ...prev,
+          flight: { ...prev.flight, played: prev.flight.played + 1 },
+        };
+        saveStats(next);
+        return next;
+      });
+      setGenerating(false);
+      setScreen('game');
+    }, 60);
+  }, [actions]);
 
   const startDaily = useCallback(() => {
     const todayKey = dateKey(new Date());
@@ -112,8 +103,24 @@ function App() {
       setScreen('game');
       return;
     }
-    startGame('daily', todayKey);
-  }, [saved, actions, startGame]);
+    setGenerating(true);
+    setIsNewBest(false);
+    setTimeout(() => {
+      const rng = mulberry32(dateSeed(new Date()));
+      const { puzzle, solution } = generatePuzzle(rng);
+      actions.newGame({ puzzle, solution, difficulty: 'daily', dailyDate: todayKey });
+      setStats((prev) => {
+        const next: Stats = {
+          ...prev,
+          daily: { ...prev.daily, played: prev.daily.played + 1 },
+        };
+        saveStats(next);
+        return next;
+      });
+      setGenerating(false);
+      setScreen('game');
+    }, 60);
+  }, [saved, actions]);
 
   const continueSaved = useCallback(() => {
     if (!saved) return;
@@ -183,7 +190,7 @@ function App() {
           stats={stats}
           generating={generating}
           onContinue={continueSaved}
-          onNewGame={(d) => startGame(d)}
+          onNewFlight={startFlight}
           onDaily={startDaily}
           onOpenSettings={() => setShowSettings(true)}
         />
@@ -196,7 +203,7 @@ function App() {
           noteEditable={noteEditable}
           isNewBest={isNewBest}
           onHome={goHome}
-          onNewGame={() => startGame(game.difficulty === 'daily' ? 'medium' : game.difficulty)}
+          onNewGame={startFlight}
           onRetry={retryPuzzle}
         />
       )}

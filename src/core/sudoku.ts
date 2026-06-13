@@ -2,22 +2,20 @@
 
 export type Grid = number[];
 
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert' | 'daily';
+// There are no difficulty tiers any more — every board is a "Flight". The only
+// guarantee that matters is that FLY (naked-single propagation) can't finish it
+// on its own, so the player always has to make at least one real deduction.
+export type Difficulty = 'flight' | 'daily';
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: 'Easy',
-  medium: 'Medium',
-  hard: 'Hard',
-  expert: 'Expert',
+  flight: 'Flight',
   daily: 'Daily Flight',
 };
 
-const CLUE_TARGETS: Record<Exclude<Difficulty, 'daily'>, number> = {
-  easy: 40,
-  medium: 34,
-  hard: 29,
-  expert: 25,
-};
+// Digging bounds. We stop as soon as the board is FLY-resistant and at/under the
+// soft target; if it's still FLY-solvable we keep carving down to the floor.
+const SOFT_TARGET = 32;
+const MIN_CLUES = 26;
 
 export const rowOf = (i: number) => Math.floor(i / 9);
 export const colOf = (i: number) => i % 9;
@@ -182,34 +180,70 @@ export const generateSolvedGrid = (rng: () => number): Grid => {
   return grid;
 };
 
+// Naked-single propagation — exactly what FLY can do on its own. Returns true
+// if repeatedly filling forced cells finishes the whole board. A puzzle FLY can
+// "beat in one go" is one where this returns true, which is what we reject.
+export const flySolves = (puzzle: Grid): boolean => {
+  const g = [...puzzle];
+  let progress = true;
+  while (progress) {
+    progress = false;
+    for (let i = 0; i < 81; i++) {
+      if (g[i] !== 0) continue;
+      const mask = candidateMask(g, i);
+      if (mask === 0) return false; // contradiction — not solvable as-is
+      if (popcount(mask) === 1) {
+        g[i] = maskToDigits(mask)[0];
+        progress = true;
+      }
+    }
+  }
+  return g.every((v) => v !== 0);
+};
+
 export interface GeneratedPuzzle {
   puzzle: Grid;
   solution: Grid;
 }
 
-// Generates a puzzle by digging clues out of a full grid while the
-// solution stays unique. Stops at the difficulty's clue target.
-export const generatePuzzle = (
-  difficulty: Difficulty,
-  rng: () => number = Math.random
-): GeneratedPuzzle => {
-  const target = CLUE_TARGETS[difficulty === 'daily' ? 'medium' : difficulty];
-  const solution = generateSolvedGrid(rng);
-  const puzzle = [...solution];
-  let clues = 81;
+// Generates a puzzle that keeps a unique solution AND can't be finished by FLY
+// alone, so the player must always make at least one genuine deduction before
+// the cascade can take over.
+export const generatePuzzle = (rng: () => number = Math.random): GeneratedPuzzle => {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const solution = generateSolvedGrid(rng);
+    const puzzle = [...solution];
+    let clues = 81;
 
-  const order = shuffle(Array.from({ length: 81 }, (_, i) => i), rng);
-  for (const i of order) {
-    if (clues <= target) break;
-    const saved = puzzle[i];
-    puzzle[i] = 0;
-    if (hasUniqueSolution(puzzle)) {
-      clues--;
-    } else {
-      puzzle[i] = saved;
+    const order = shuffle(Array.from({ length: 81 }, (_, i) => i), rng);
+    for (const i of order) {
+      if (clues <= MIN_CLUES) break;
+      // Good enough once we're reasonably lean and FLY can no longer finish it.
+      if (clues <= SOFT_TARGET && !flySolves(puzzle)) break;
+      const saved = puzzle[i];
+      puzzle[i] = 0;
+      if (hasUniqueSolution(puzzle)) {
+        clues--;
+      } else {
+        puzzle[i] = saved;
+      }
     }
+
+    if (!flySolves(puzzle)) return { puzzle, solution };
   }
 
+  // Extremely unlikely fallback: hand back a guaranteed-unique board anyway.
+  const solution = generateSolvedGrid(rng);
+  const puzzle = [...solution];
+  const order = shuffle(Array.from({ length: 81 }, (_, i) => i), rng);
+  let clues = 81;
+  for (const i of order) {
+    if (clues <= MIN_CLUES) break;
+    const saved = puzzle[i];
+    puzzle[i] = 0;
+    if (hasUniqueSolution(puzzle)) clues--;
+    else puzzle[i] = saved;
+  }
   return { puzzle, solution };
 };
 

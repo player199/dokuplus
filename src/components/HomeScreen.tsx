@@ -1,5 +1,5 @@
 import React from 'react';
-import { Difficulty, DIFFICULTY_LABELS, dateKey } from '../core/sudoku';
+import { Difficulty, dateKey } from '../core/sudoku';
 import { SavedGame, Stats } from '../core/storage';
 import { formatTime } from '../core/format';
 
@@ -8,7 +8,7 @@ interface HomeScreenProps {
   stats: Stats;
   generating: boolean;
   onContinue: () => void;
-  onNewGame: (difficulty: Difficulty) => void;
+  onNewFlight: () => void;
   onDaily: () => void;
   onOpenSettings: () => void;
 }
@@ -27,17 +27,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   stats,
   generating,
   onContinue,
-  onNewGame,
+  onNewFlight,
   onDaily,
   onOpenSettings,
 }) => {
   const today = new Date();
   const todayKey = dateKey(today);
   const dailyDone = stats.lastDailyCompleted === todayKey;
-  const totalWon = (['easy', 'medium', 'hard', 'expert', 'daily'] as Difficulty[]).reduce(
-    (sum, d) => sum + stats[d].won,
-    0
-  );
+
+  const all = (['flight', 'daily'] as Difficulty[]).map((d) => stats[d]);
+  const totalWon = all.reduce((sum, s) => sum + s.won, 0);
+  const bestStreak = Math.max(...all.map((s) => s.bestStreak));
+  const bestTimes = all.map((s) => s.bestTime).filter((t): t is number => t !== null);
+  const bestTime = bestTimes.length ? Math.min(...bestTimes) : null;
 
   const filledCount = saved ? saved.values.filter((v) => v !== 0).length : 0;
 
@@ -60,7 +62,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
       </header>
 
-      <p className="home-tagline">The sudoku that flies. Prune the candidates, then watch FLY mode land the rest.</p>
+      <p className="home-tagline">
+        Every board needs a real deduction before FLY can land the rest. No two are the same.
+      </p>
+
+      <button type="button" className="depart-btn" onClick={onNewFlight} disabled={generating}>
+        <PlaneLogo />
+        <span className="depart-btn__text">
+          <strong>New Flight</strong>
+          <small>Fresh board · tap to depart</small>
+        </span>
+        <span className="depart-btn__chev" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path fill="currentColor" d="m9 6 6 6-6 6-1.4-1.4L12.2 12 7.6 7.4 9 6Z" />
+          </svg>
+        </span>
+      </button>
 
       <div className="home-cards">
         <button type="button" className="card card--daily" onClick={onDaily} disabled={generating}>
@@ -82,12 +99,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
 
         {saved && (
-          <button type="button" className="card card--continue" onClick={onContinue} disabled={generating}>
+          <button
+            type="button"
+            className="card card--continue"
+            onClick={onContinue}
+            disabled={generating}
+          >
             <div className="card__row">
               <div>
                 <span className="card__title">Continue</span>
                 <span className="card__sub">
-                  {DIFFICULTY_LABELS[saved.difficulty]} · {formatTime(saved.time)} · {filledCount}/81
+                  {formatTime(saved.time)} · {filledCount}/81 placed
                 </span>
               </div>
               <svg viewBox="0 0 24 24" className="card__icon">
@@ -99,41 +121,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       </div>
 
       <div className="home-section">
-        <h2>New Game</h2>
-        <div className="difficulty-grid">
-          {(['easy', 'medium', 'hard', 'expert'] as const).map((d) => (
-            <button
-              key={d}
-              type="button"
-              className={`diff-btn diff-btn--${d}`}
-              onClick={() => onNewGame(d)}
-              disabled={generating}
-            >
-              <span className="diff-btn__label">{DIFFICULTY_LABELS[d]}</span>
-              {stats[d].bestTime !== null && (
-                <span className="diff-btn__best">Best {formatTime(stats[d].bestTime!)}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="home-section">
-        <h2>Your Stats</h2>
+        <h2>Flight Log</h2>
         <div className="stats-row">
           <div className="stat">
             <span className="stat__value">{totalWon}</span>
-            <span className="stat__label">Solved</span>
+            <span className="stat__label">Landed</span>
           </div>
           <div className="stat">
-            <span className="stat__value">{stats.daily.won}</span>
-            <span className="stat__label">Dailies</span>
+            <span className="stat__value">{bestTime !== null ? formatTime(bestTime) : '—'}</span>
+            <span className="stat__label">Best Time</span>
           </div>
           <div className="stat">
-            <span className="stat__value">
-              {Math.max(...(['easy', 'medium', 'hard', 'expert', 'daily'] as Difficulty[]).map((d) => stats[d].bestStreak))}
-            </span>
-            <span className="stat__label">Best Streak</span>
+            <span className="stat__value">{bestStreak}</span>
+            <span className="stat__label">Streak</span>
           </div>
         </div>
       </div>
