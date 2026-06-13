@@ -352,42 +352,30 @@ const planFlyRoute = (state: GameState): { i: number; digit: number }[] => {
   return route;
 };
 
-// Reorders the same set of forced cells into a smooth spatial tour (greedy
-// nearest-neighbour) so the plane flies a tidy path instead of hopping in solve
-// order. Every cell's digit is fixed regardless of order, so this is just
-// cosmetic. Starts from the cell nearest the top-left.
+// Reorders the same set of forced cells into a boustrophedon ("lawnmower")
+// sweep — the way a survey/crop-duster plane covers a field: straight passes
+// row by row, alternating direction so each pass ends near where the next
+// begins, leaving only smooth U-turns at the edges (no erratic sharp turns).
+// The flight controller's spline then rounds those turns into banked arcs.
+// Every cell's digit is fixed regardless of order, so this is purely cosmetic.
 const orderScenic = (route: { i: number; digit: number }[]): { i: number; digit: number }[] => {
   if (route.length <= 2) return route;
-  const cx = (m: { i: number }) => colOf(m.i) + 0.5;
-  const cy = (m: { i: number }) => rowOf(m.i) + 0.5;
-  const remaining = [...route];
 
-  let startIdx = 0;
-  let startBest = Infinity;
-  remaining.forEach((m, idx) => {
-    const d = cx(m) * cx(m) + cy(m) * cy(m);
-    if (d < startBest) {
-      startBest = d;
-      startIdx = idx;
-    }
-  });
-
-  const ordered = [remaining.splice(startIdx, 1)[0]];
-  while (remaining.length > 0) {
-    const last = ordered[ordered.length - 1];
-    let bestIdx = 0;
-    let bestDist = Infinity;
-    remaining.forEach((m, idx) => {
-      const dx = cx(m) - cx(last);
-      const dy = cy(m) - cy(last);
-      const d = dx * dx + dy * dy;
-      if (d < bestDist) {
-        bestDist = d;
-        bestIdx = idx;
-      }
-    });
-    ordered.push(remaining.splice(bestIdx, 1)[0]);
+  const byRow = new Map<number, { i: number; digit: number }[]>();
+  for (const m of route) {
+    const r = rowOf(m.i);
+    const arr = byRow.get(r);
+    if (arr) arr.push(m);
+    else byRow.set(r, [m]);
   }
+
+  const rows = [...byRow.keys()].sort((a, b) => a - b);
+  const ordered: { i: number; digit: number }[] = [];
+  rows.forEach((r, pass) => {
+    const cells = byRow.get(r)!.sort((a, b) => colOf(a.i) - colOf(b.i));
+    if (pass % 2 === 1) cells.reverse(); // sweep back the other way
+    ordered.push(...cells);
+  });
   return ordered;
 };
 
