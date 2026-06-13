@@ -594,22 +594,22 @@ p {
   overflow: visible;
 }
 
-/* container-type: size lets .board use min(100cqw, 100cqh) to pick the
-   largest square that fits. overflow: visible keeps HUD brackets unclipped. */
+/* Shrinks to wrap the board — stage is exactly as tall as the board is wide.
+   container-type: inline-size gives the board a reliable cqw.
+   overflow: visible keeps HUD corner brackets unclipped. */
 .board-stage {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px 0;
-  container-type: size;
+  container-type: inline-size;
   overflow: visible;
 }
 
 .board {
   position: relative;
-  width: min(100cqw, 100cqh);
+  width: 100cqw;
   min-width: 240px;
   margin: 0 auto;
 }
