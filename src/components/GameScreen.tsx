@@ -146,49 +146,51 @@ const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       </header>
 
-      <div className="board-stage">
-        <Board
-          values={game.values}
-        givens={givens}
-        notes={game.notes}
-        errors={errors}
-        selected={game.selected}
-        highlightSame={settings.highlightSame}
-        flying={game.flying}
-        flyRoute={game.flyRoute}
-        lastPlaced={game.lastPlaced}
-        paused={game.status === 'paused'}
-        noteEditable={noteEditable}
-        onSelect={(i) => {
-          if (game.status === 'paused') {
-            actions.resumePlay();
-            return;
-          }
-          actions.select(i);
-        }}
-          onToggleNote={actions.toggleNote}
-          onFlyLand={actions.flyLand}
-          onFlyDone={actions.endFly}
+      <div className="game-body">
+        <div className="board-stage">
+          <Board
+            values={game.values}
+            givens={givens}
+            notes={game.notes}
+            errors={errors}
+            selected={game.selected}
+            highlightSame={settings.highlightSame}
+            flying={game.flying}
+            flyRoute={game.flyRoute}
+            lastPlaced={game.lastPlaced}
+            paused={game.status === 'paused'}
+            noteEditable={noteEditable}
+            onSelect={(i) => {
+              if (game.status === 'paused') {
+                actions.resumePlay();
+                return;
+              }
+              actions.select(i);
+            }}
+            onToggleNote={actions.toggleNote}
+            onFlyLand={actions.flyLand}
+            onFlyDone={actions.endFly}
+          />
+        </div>
+
+        <Controls
+          digitCounts={counts}
+          notesMode={game.notesMode}
+          autoActive={game.autoNotes}
+          canUndo={game.history.length > 0}
+          flying={game.flying}
+          canFly={canFly}
+          flyNudge={flyNudge}
+          disabled={game.status !== 'playing' || game.flying}
+          onDigit={actions.input}
+          onErase={actions.erase}
+          onUndo={actions.undo}
+          onToggleNotes={actions.toggleNotesMode}
+          onAutoNotes={actions.toggleAutoNotes}
+          onHint={actions.hint}
+          onFly={handleFly}
         />
       </div>
-
-      <Controls
-        digitCounts={counts}
-        notesMode={game.notesMode}
-        autoActive={game.autoNotes}
-        canUndo={game.history.length > 0}
-        flying={game.flying}
-        canFly={canFly}
-        flyNudge={flyNudge}
-        disabled={game.status !== 'playing' || game.flying}
-        onDigit={actions.input}
-        onErase={actions.erase}
-        onUndo={actions.undo}
-        onToggleNotes={actions.toggleNotesMode}
-        onAutoNotes={actions.toggleAutoNotes}
-        onHint={actions.hint}
-        onFly={handleFly}
-      />
 
       {game.status === 'paused' && (
         <div className="overlay" role="dialog" aria-label="Paused">

@@ -581,17 +581,29 @@ p {
 
 /* -------------------------------- Board --------------------------------- */
 
-/* Holds the board centered in the space between header and controls.
-   container-type: size lets the board child use cqw/cqh to size itself
-   to the actual available space — no dvh math needed. */
-.board-stage {
+/* Fills remaining height and centers the board+controls block vertically. */
+.game-body {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+}
+
+/* Sizes the board to the available square within the body block.
+   container-type: size lets the board child use cqw/cqh. */
+.board-stage {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px 0;
   container-type: size;
+  /* Shrink to fit the board's natural square — don't eat controls' space. */
+  flex: 0 1 auto;
+  aspect-ratio: 1;
+  width: 100%;
 }
 
 .board {
