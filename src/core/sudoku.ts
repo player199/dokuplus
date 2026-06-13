@@ -14,8 +14,8 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
 
 // Digging bounds. We stop as soon as the board is FLY-resistant and at/under the
 // soft target; if it's still FLY-solvable we keep carving down to the floor.
-const SOFT_TARGET = 32;
-const MIN_CLUES = 26;
+const SOFT_TARGET = 30;
+const MIN_CLUES = 24;
 
 export const rowOf = (i: number) => Math.floor(i / 9);
 export const colOf = (i: number) => i % 9;
@@ -181,8 +181,7 @@ export const generateSolvedGrid = (rng: () => number): Grid => {
 };
 
 // Naked-single propagation — exactly what FLY can do on its own. Returns true
-// if repeatedly filling forced cells finishes the whole board. A puzzle FLY can
-// "beat in one go" is one where this returns true, which is what we reject.
+// if repeatedly filling forced cells finishes the whole board.
 export const flySolves = (puzzle: Grid): boolean => {
   const g = [...puzzle];
   let progress = true;
@@ -201,25 +200,35 @@ export const flySolves = (puzzle: Grid): boolean => {
   return g.every((v) => v !== 0);
 };
 
+// True if any empty cell is pinned to a single candidate — i.e. FLY could make
+// a move right now. We reject these so a fresh board gives FLY nothing to do
+// until the player creates a forced cell through their own deduction.
+export const hasNakedSingle = (puzzle: Grid): boolean => {
+  for (let i = 0; i < 81; i++) {
+    if (puzzle[i] !== 0) continue;
+    if (popcount(candidateMask(puzzle, i)) === 1) return true;
+  }
+  return false;
+};
+
 export interface GeneratedPuzzle {
   puzzle: Grid;
   solution: Grid;
 }
 
-// Generates a puzzle that keeps a unique solution AND can't be finished by FLY
-// alone, so the player must always make at least one genuine deduction before
-// the cascade can take over.
+// Generates a puzzle that keeps a unique solution AND starts with no forced
+// cells at all, so FLY is inert until the player makes a genuine deduction.
+// (No naked single at the start also means FLY can never finish it in one go.)
 export const generatePuzzle = (rng: () => number = Math.random): GeneratedPuzzle => {
-  for (let attempt = 0; attempt < 60; attempt++) {
+  const dig = (): GeneratedPuzzle => {
     const solution = generateSolvedGrid(rng);
     const puzzle = [...solution];
     let clues = 81;
-
     const order = shuffle(Array.from({ length: 81 }, (_, i) => i), rng);
     for (const i of order) {
       if (clues <= MIN_CLUES) break;
-      // Good enough once we're reasonably lean and FLY can no longer finish it.
-      if (clues <= SOFT_TARGET && !flySolves(puzzle)) break;
+      // Good enough once we're lean and nothing is forced on the opening board.
+      if (clues <= SOFT_TARGET && !hasNakedSingle(puzzle)) break;
       const saved = puzzle[i];
       puzzle[i] = 0;
       if (hasUniqueSolution(puzzle)) {
@@ -228,23 +237,15 @@ export const generatePuzzle = (rng: () => number = Math.random): GeneratedPuzzle
         puzzle[i] = saved;
       }
     }
+    return { puzzle, solution };
+  };
 
-    if (!flySolves(puzzle)) return { puzzle, solution };
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const result = dig();
+    if (!hasNakedSingle(result.puzzle)) return result;
   }
-
-  // Extremely unlikely fallback: hand back a guaranteed-unique board anyway.
-  const solution = generateSolvedGrid(rng);
-  const puzzle = [...solution];
-  const order = shuffle(Array.from({ length: 81 }, (_, i) => i), rng);
-  let clues = 81;
-  for (const i of order) {
-    if (clues <= MIN_CLUES) break;
-    const saved = puzzle[i];
-    puzzle[i] = 0;
-    if (hasUniqueSolution(puzzle)) clues--;
-    else puzzle[i] = saved;
-  }
-  return { puzzle, solution };
+  // Extremely unlikely fallback.
+  return dig();
 };
 
 export const isComplete = (values: Grid, solution: Grid): boolean => {
