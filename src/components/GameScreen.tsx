@@ -103,6 +103,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const difficultyLabel = DIFFICULTY_LABELS[game.difficulty];
   const finished = game.status === 'won' || game.status === 'lost';
 
+  // Hold the win card back until the puzzle is solved AND any victory flight has
+  // landed, with a short beat so the final cell is seen settling first.
+  const [showWin, setShowWin] = useState(false);
+  useEffect(() => {
+    if (game.status === 'won' && !game.flying) {
+      const t = setTimeout(() => setShowWin(true), 360);
+      return () => clearTimeout(t);
+    }
+    setShowWin(false);
+  }, [game.status, game.flying]);
+
   return (
     <div className="screen game-screen">
       <header className="game-header">
@@ -200,7 +211,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       )}
 
-      {game.status === 'won' && (
+      {showWin && (
         <div className="overlay" role="dialog" aria-label="Puzzle solved">
           <div className="overlay__card overlay__card--win">
             <div className="overlay__plane">

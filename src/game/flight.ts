@@ -162,7 +162,7 @@ export function animateFlight(o: FlightOptions): () => void {
     // landed (absolute), not as a fraction of the route, so a short 2-3 cell
     // flight stays calm instead of snapping straight to full speed, while a
     // long cascade still winds up fast over its first several cells.
-    const segLen = len(sub(at(seg + 1), at(seg)));
+    const segLen = Math.max(0.04, len(sub(at(seg + 1), at(seg))));
     const speed = Math.min(2, 0.8 + 0.17 * landed); // board-fractions / sec
     s = Math.min(m - 1, s + (speed * dt) / segLen);
 

@@ -128,6 +128,9 @@ const placeDigit = (
     status = 'won';
   }
 
+  // On a win, let an in-progress flight finish its pass (the controller ends it
+  // via FLY_END); only a loss cancels the flight outright.
+  const keepFlight = status !== 'lost';
   return {
     ...state,
     values,
@@ -135,10 +138,10 @@ const placeDigit = (
     mistakes,
     status,
     lastPlaced: i,
-    flying: status === 'playing' ? state.flying : false,
-    flyTarget: status === 'playing' ? state.flyTarget : null,
-    flyRoute: status === 'playing' ? state.flyRoute : [],
-    flyIndex: status === 'playing' ? state.flyIndex : 0,
+    flying: keepFlight ? state.flying : false,
+    flyTarget: keepFlight ? state.flyTarget : null,
+    flyRoute: keepFlight ? state.flyRoute : [],
+    flyIndex: keepFlight ? state.flyIndex : 0,
   };
 };
 
