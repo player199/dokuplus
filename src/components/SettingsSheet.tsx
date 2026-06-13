@@ -84,66 +84,91 @@ const SettingsSheet: React.FC<SettingsSheetProps> = ({ settings, onChange, onClo
   };
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Settings">
-        <div className="sheet__handle" />
+    <div className="settings-screen" role="dialog" aria-label="Settings">
+      <header className="settings-header">
         <h2>Settings</h2>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Done">
+          <svg viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.3 19.7l-1.42-1.41L9.17 12 2.88 5.71 4.3 4.29l6.29 6.3 6.29-6.3 1.42 1.42Z"
+            />
+          </svg>
+        </button>
+      </header>
 
-        <div className="setting setting--block">
-          <span className="setting__label">Theme</span>
-          <span className="setting__desc">Color packs for the flight deck</span>
-          <div className="theme-grid">
-            {THEMES.map((theme) => (
-              <ThemeCard
-                key={theme.id}
-                theme={theme}
-                active={settings.themeId === theme.id}
-                unlocked={isThemeUnlocked(theme.id, theme.group)}
-                busy={busyId === theme.id}
-                onSelect={() => pickTheme(theme)}
-              />
-            ))}
+      <div className="settings-body">
+        <section className="settings-group">
+          <h3 className="settings-group__title">Appearance</h3>
+          <div className="settings-card">
+            <div className="setting setting--block">
+              <span className="setting__label">Theme</span>
+              <span className="setting__desc">Color packs for the flight deck</span>
+              <div className="theme-grid">
+                {THEMES.map((theme) => (
+                  <ThemeCard
+                    key={theme.id}
+                    theme={theme}
+                    active={settings.themeId === theme.id}
+                    unlocked={isThemeUnlocked(theme.id, theme.group)}
+                    busy={busyId === theme.id}
+                    onSelect={() => pickTheme(theme)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <Toggle
-          label="Mistake limit"
-          description="Game ends after 3 wrong entries"
-          checked={settings.mistakeLimit}
-          onToggle={() => set('mistakeLimit', !settings.mistakeLimit)}
-        />
-        <Toggle
-          label="Show errors"
-          description="Mark wrong digits in red"
-          checked={settings.showErrors}
-          onToggle={() => set('showErrors', !settings.showErrors)}
-        />
-        <Toggle
-          label="Highlight matches"
-          description="Light up cells with the same digit"
-          checked={settings.highlightSame}
-          onToggle={() => set('highlightSame', !settings.highlightSame)}
-        />
-        <Toggle
-          label="Smart notes"
-          description="Placing a digit clears it from nearby notes"
-          checked={settings.autoCleanNotes}
-          onToggle={() => set('autoCleanNotes', !settings.autoCleanNotes)}
-        />
-        <Toggle
-          label="Scenic flight path"
-          description="Plane flies a smooth tour instead of solve order"
-          checked={settings.scenicFlight}
-          onToggle={() => set('scenicFlight', !settings.scenicFlight)}
-        />
-        <Toggle
-          label="Haptics"
-          description="Vibrate gently on input (supported phones)"
-          checked={settings.hapticFeedback}
-          onToggle={() => set('hapticFeedback', !settings.hapticFeedback)}
-        />
+        <section className="settings-group">
+          <h3 className="settings-group__title">Gameplay</h3>
+          <div className="settings-card">
+            <Toggle
+              label="Mistake limit"
+              description="Game ends after 3 wrong entries"
+              checked={settings.mistakeLimit}
+              onToggle={() => set('mistakeLimit', !settings.mistakeLimit)}
+            />
+            <Toggle
+              label="Show errors"
+              description="Mark wrong digits in red"
+              checked={settings.showErrors}
+              onToggle={() => set('showErrors', !settings.showErrors)}
+            />
+            <Toggle
+              label="Highlight matches"
+              description="Light up cells with the same digit"
+              checked={settings.highlightSame}
+              onToggle={() => set('highlightSame', !settings.highlightSame)}
+            />
+            <Toggle
+              label="Smart notes"
+              description="Placing a digit clears it from nearby notes"
+              checked={settings.autoCleanNotes}
+              onToggle={() => set('autoCleanNotes', !settings.autoCleanNotes)}
+            />
+            <Toggle
+              label="Scenic flight path"
+              description="Plane flies a smooth tour instead of solve order"
+              checked={settings.scenicFlight}
+              onToggle={() => set('scenicFlight', !settings.scenicFlight)}
+            />
+          </div>
+        </section>
 
-        <button type="button" className="btn btn--primary sheet__close" onClick={onClose}>
+        <section className="settings-group">
+          <h3 className="settings-group__title">Feedback</h3>
+          <div className="settings-card">
+            <Toggle
+              label="Haptics"
+              description="Vibrate gently on input (supported phones)"
+              checked={settings.hapticFeedback}
+              onToggle={() => set('hapticFeedback', !settings.hapticFeedback)}
+            />
+          </div>
+        </section>
+
+        <button type="button" className="btn btn--primary settings-done" onClick={onClose}>
           Done
         </button>
       </div>

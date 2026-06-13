@@ -37,6 +37,9 @@ export interface DifficultyStats {
 
 export type Stats = Record<Difficulty, DifficultyStats> & {
   lastDailyCompleted?: string;
+  dayStreak?: number; // consecutive days a Daily has been cleared
+  bestDayStreak?: number;
+  cellsFlown?: number; // total cells FLY has landed for the player
 };
 
 const emptyDifficultyStats = (): DifficultyStats => ({
@@ -51,6 +54,9 @@ const emptyDifficultyStats = (): DifficultyStats => ({
 export const emptyStats = (): Stats => ({
   flight: emptyDifficultyStats(),
   daily: emptyDifficultyStats(),
+  dayStreak: 0,
+  bestDayStreak: 0,
+  cellsFlown: 0,
 });
 
 // Saved game shape — must stay JSON-serializable.

@@ -37,9 +37,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const all = (['flight', 'daily'] as Difficulty[]).map((d) => stats[d]);
   const totalWon = all.reduce((sum, s) => sum + s.won, 0);
-  const bestStreak = Math.max(...all.map((s) => s.bestStreak));
+  const totalPlayed = all.reduce((sum, s) => sum + s.played, 0);
+  const totalTime = all.reduce((sum, s) => sum + s.totalTime, 0);
+  const winRate = totalPlayed ? Math.round((totalWon / totalPlayed) * 100) : 0;
+  const avgTime = totalWon ? Math.round(totalTime / totalWon) : null;
   const bestTimes = all.map((s) => s.bestTime).filter((t): t is number => t !== null);
   const bestTime = bestTimes.length ? Math.min(...bestTimes) : null;
+  const dayStreak = stats.dayStreak ?? 0;
+  const bestDayStreak = stats.bestDayStreak ?? 0;
+  const cellsFlown = stats.cellsFlown ?? 0;
 
   const filledCount = saved ? saved.values.filter((v) => v !== 0).length : 0;
 
@@ -122,18 +128,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
       <div className="home-section">
         <h2>Flight Log</h2>
-        <div className="stats-row">
+        <div className="streak-hero">
+          <PlaneLogo />
+          <div className="streak-hero__main">
+            <span className="streak-hero__value">{dayStreak}</span>
+            <span className="streak-hero__label">Day streak</span>
+          </div>
+          <div className="streak-hero__meta">
+            <span>Best {bestDayStreak}</span>
+            <span>{cellsFlown.toLocaleString()} cells flown</span>
+          </div>
+        </div>
+        <div className="stat-grid">
           <div className="stat">
             <span className="stat__value">{totalWon}</span>
             <span className="stat__label">Landed</span>
           </div>
           <div className="stat">
-            <span className="stat__value">{bestTime !== null ? formatTime(bestTime) : '—'}</span>
-            <span className="stat__label">Best Time</span>
+            <span className="stat__value">{winRate}%</span>
+            <span className="stat__label">Win rate</span>
           </div>
           <div className="stat">
-            <span className="stat__value">{bestStreak}</span>
-            <span className="stat__label">Streak</span>
+            <span className="stat__value">{bestTime !== null ? formatTime(bestTime) : '—'}</span>
+            <span className="stat__label">Best time</span>
+          </div>
+          <div className="stat">
+            <span className="stat__value">{avgTime !== null ? formatTime(avgTime) : '—'}</span>
+            <span className="stat__label">Avg time</span>
           </div>
         </div>
       </div>

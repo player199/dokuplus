@@ -152,8 +152,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       </header>
 
-      <Board
-        values={game.values}
+      <div className="board-stage">
+        <Board
+          values={game.values}
         givens={givens}
         notes={game.notes}
         errors={errors}
@@ -171,10 +172,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
           }
           actions.select(i);
         }}
-        onToggleNote={actions.toggleNote}
-        onFlyLand={actions.flyLand}
-        onFlyDone={actions.endFly}
-      />
+          onToggleNote={actions.toggleNote}
+          onFlyLand={actions.flyLand}
+          onFlyDone={actions.endFly}
+        />
+      </div>
 
       <Controls
         digitCounts={counts}

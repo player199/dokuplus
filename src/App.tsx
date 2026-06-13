@@ -146,6 +146,19 @@ function App() {
     setScreen('home');
   }, [game.status, actions]);
 
+  // Tally cells FLY lands for the player (one per landing) into a lifetime stat.
+  const prevFlyIndex = useRef(0);
+  useEffect(() => {
+    const delta = game.flyIndex - prevFlyIndex.current;
+    prevFlyIndex.current = game.flyIndex;
+    if (delta <= 0) return;
+    setStats((prev) => {
+      const next: Stats = { ...prev, cellsFlown: (prev.cellsFlown ?? 0) + delta };
+      saveStats(next);
+      return next;
+    });
+  }, [game.flyIndex]);
+
   // Record results exactly once per finished game.
   const prevStatus = useRef(game.status);
   useEffect(() => {
@@ -169,7 +182,16 @@ function App() {
           bestStreak: Math.max(ds.bestStreak, ds.currentStreak + 1),
         },
       };
-      if (game.dailyDate) next.lastDailyCompleted = game.dailyDate;
+      if (game.dailyDate) {
+        next.lastDailyCompleted = game.dailyDate;
+        const yesterday = dateKey(new Date(Date.now() - 86400000));
+        let streak: number;
+        if (stats.lastDailyCompleted === game.dailyDate) streak = stats.dayStreak ?? 0;
+        else if (stats.lastDailyCompleted === yesterday) streak = (stats.dayStreak ?? 0) + 1;
+        else streak = 1;
+        next.dayStreak = streak;
+        next.bestDayStreak = Math.max(stats.bestDayStreak ?? 0, streak);
+      }
       updateStats(next);
       setSaved(null);
     } else if (game.status === 'lost') {
