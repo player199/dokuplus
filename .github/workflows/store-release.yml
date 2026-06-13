@@ -97,6 +97,13 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
 
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/App/Pods
+          key: pods-${{ hashFiles('ios/App/Podfile.lock') }}
+          restore-keys: pods-
+
       - name: Build web + sync
         run: |
           npm ci
