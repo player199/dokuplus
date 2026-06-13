@@ -133,4 +133,5 @@ jobs:
           CERT_P12_PATH: ${{ env.CERT_P12_PATH }}
           CERT_P12_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
           PROFILE_NAME: ${{ env.PROFILE_NAME }}
+          BUILD_NUMBER: ${{ github.run_number }}
         run: bundle exec fastlane ios beta
